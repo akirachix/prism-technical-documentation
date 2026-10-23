@@ -1,0 +1,71 @@
+site_name: Prism Technical Documentation
+site_description: Technical documentation for Prism, the Mirai product
+site_url: "https://akirachix.github.io/prism-technical-documentation/"
+repo_name: prism-technical-documentation
+edit_uri: https://github.com/akirachix/prism-technical-documentation/edit/main/docs/
+
+theme:
+  name: material
+  language: en
+  logo: assets/brand/prism-logo.png
+  favicon: assets/brand/prism-logo.png
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: blue
+      accent: red
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - Start Here:
+      - Overview: start-here/index.md
+      - Documentation Guide: start-here/documentation-guide.md
+  - Architecture:
+      - Overview: architecture/index.md
+      - System Context: architecture/system-context.md
+  - Backend:
+      - Overview: backend/index.md
+  - AI:
+      - Overview: ai/index.md
+  - Frontend:
+      - Overview: frontend/index.md
+  - Platform:
+      - Overview: platform/index.md
+  - Security:
+      - Overview: security/index.md
+  - Developer Guide:
+      - Overview: developer-guide/index.md
+      - Setup: developer-guide/setup.md
+  - Reference:
+      - Overview: reference/index.md
