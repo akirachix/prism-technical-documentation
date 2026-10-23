@@ -1,0 +1,19 @@
+/* Custom styling for Prism documentation. */
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #00235b;          /* header, tabs */
+  --md-primary-fg-color--light: #1a3f7a;
+  --md-primary-fg-color--dark: #001840;
+  --md-primary-bg-color: #ffffff;          /* text on the header */
+  --md-primary-bg-color--light: #ffffffb3;
+  --md-accent-fg-color: #f07934;           /* links on hover, highlights */
+  --md-accent-fg-color--transparent: #f079341a;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #00235b;
+  --md-primary-fg-color--light: #1a3f7a;
+  --md-primary-fg-color--dark: #001840;
+  --md-accent-fg-color: #ff8945;           /* the lighter orange reads better on dark */
+  --md-accent-fg-color--transparent: #ff89451a;
+}
