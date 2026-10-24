@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Mirai">
+  <circle cx="35" cy="13" r="7" fill="none" stroke="#CF2135" stroke-width="4.5"/>
+  <circle cx="63" cy="13" r="7" fill="none" stroke="#CF2135" stroke-width="4.5"/>
+  <path d="M20 92 V52 C20 36 28 30 36 30 C46 30 53 38 53 55 C53 74 50 84 49 84 C48 84 45 74 45 55 C45 38 52 30 62 30 C70 30 78 36 78 52 V92"
+        fill="none" stroke="#011F55" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

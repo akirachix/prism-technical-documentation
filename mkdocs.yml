@@ -1,71 +1,147 @@
-site_name: Prism Technical Documentation
-site_description: Technical documentation for Prism, the Mirai product
+site_name: Mirai Technical Documentation
+site_description: >-
+  Technical documentation for Mirai, Team Prism's non-diagnostic pre-referral
+  observation platform for early childhood educators and parents in Nairobi's
+  mid-tier and low-cost private schools.
+site_author: Team Prism
 site_url: "https://akirachix.github.io/prism-technical-documentation/"
+repo_url: https://github.com/akirachix/prism-technical-documentation
 repo_name: prism-technical-documentation
-edit_uri: https://github.com/akirachix/prism-technical-documentation/edit/main/docs/
+edit_uri: edit/main/docs/
+copyright: >-
+  Mirai &middot; Built by Team Prism (AkiraChix codeHive 2026) &middot;
+  A screening support tool. It never gives a diagnosis.
 
 theme:
   name: material
   language: en
-  logo: assets/brand/prism-logo.png
-  favicon: assets/brand/prism-logo.png
+  logo: assets/brand/mirai-mark-light.svg
+  favicon: assets/brand/mirai-mark.svg
+  font:
+    text: Quicksand
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+    admonition:
+      note: material/notebook-outline
+      info: material/information-outline
+      tip: material/lightbulb-on-outline
+      warning: material/alert-outline
+      danger: material/shield-alert-outline
+      example: material/flask-outline
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
-    - navigation.top
     - navigation.indexes
+    - navigation.top
+    - navigation.tracking
+    - navigation.footer
+    - toc.follow
     - search.suggest
     - search.highlight
     - content.code.copy
+    - content.tabs.link
+    - content.tooltips
   palette:
-    - scheme: default
-      primary: blue
-      accent: red
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: custom
       accent: custom
       toggle:
-        icon: material/brightness-4
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
         name: Switch to light mode
 
 plugins:
   - search
 
 markdown_extensions:
+  - abbr
   - admonition
   - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
   - tables
   - toc:
       permalink: true
+      toc_depth: 3
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  - javascripts/zoom.js
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/akirachix/prism-technical-documentation
+      name: Documentation repository
+
 nav:
   - Home: index.md
   - Start Here:
-      - Overview: start-here/index.md
+      - start-here/index.md
+      - Problem and Impact: start-here/problem-and-impact.md
+      - Users and Personas: start-here/users-and-personas.md
       - Documentation Guide: start-here/documentation-guide.md
   - Architecture:
-      - Overview: architecture/index.md
+      - architecture/index.md
       - System Context: architecture/system-context.md
+      - Case Lifecycle: architecture/case-lifecycle.md
+      - Data Model: architecture/data-model.md
+      - User Flows: architecture/user-flows.md
   - Backend:
-      - Overview: backend/index.md
+      - backend/index.md
+      - Screening and Scoring Engine: backend/scoring-engine.md
+      - API Reference: backend/api.md
   - AI:
-      - Overview: ai/index.md
+      - ai/index.md
+      - IEP and Evaluation Generation: ai/iep-generation.md
   - Frontend:
-      - Overview: frontend/index.md
+      - frontend/index.md
+      - Screens: frontend/screens.md
+      - Style Guide: frontend/style-guide.md
   - Platform:
-      - Overview: platform/index.md
+      - platform/index.md
   - Security:
-      - Overview: security/index.md
+      - security/index.md
+      - Access Control: security/access-control.md
+      - Privacy and Compliance: security/privacy-compliance.md
+      - Threat Model: security/threat-model.md
   - Developer Guide:
-      - Overview: developer-guide/index.md
+      - developer-guide/index.md
       - Setup: developer-guide/setup.md
+      - Testing and QA: developer-guide/testing.md
   - Reference:
-      - Overview: reference/index.md
+      - reference/index.md
+      - Glossary: reference/glossary.md
+      - Decision Log: reference/decision-log.md
+      - Team: reference/team.md
