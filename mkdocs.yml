@@ -15,8 +15,8 @@ copyright: >-
 theme:
   name: material
   language: en
-  logo: assets/brand/mirai-mark-light.svg
-  favicon: assets/brand/mirai-mark.svg
+  logo: assets/brand/mirai-mark-light.png
+  favicon: assets/brand/mirai-mark.png
   font:
     text: Quicksand
     code: JetBrains Mono
