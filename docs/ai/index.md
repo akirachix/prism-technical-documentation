@@ -89,7 +89,6 @@ Only what the model needs to write a classroom plan, and nothing that identifies
 | Grade band (Grade 1 to 3) | Raw answers tied to an identity |
 | Teacher's edit request on regeneration (free text is checked first) | Any previous case history |
 
-The provider must not retain prompts or outputs beyond the request. This is to be **confirmed contractually** with the model provider (AppSec REQ-6.3). <span class="mi-verify">confirm</span>
 
 ## Guardrails
 

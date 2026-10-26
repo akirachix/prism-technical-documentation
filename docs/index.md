@@ -10,7 +10,7 @@ hide:
 <div class="mi-hero__inner" markdown>
 <div markdown>
 
-![Mirai](assets/brand/mirai-mark-light.svg){ .mi-hero__logo }
+![Mirai](assets/brand/mirai-mark-light.png){ .mi-hero__logo }
 
 <h1>Notice early.<br><span>Support sooner.</span></h1>
 

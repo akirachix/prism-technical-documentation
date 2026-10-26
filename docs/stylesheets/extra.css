@@ -1,13 +1,3 @@
-/* ==========================================================================
-   Mirai Technical Documentation: theme
-   Brand source: Mirai style guide (Team Prism)
-     Primary   Navy   #011F55   Red    #CF2135
-     Secondary Orange #FF8945   Black  #000000
-     Typeface  Quicksand
-   Product surfaces use a warm cream canvas (see the hi-fi screens), so the
-   light scheme does the same.
-   ========================================================================== */
-
 :root {
   --mi-navy: #011f55;
   --mi-navy-700: #0a2c6b;
@@ -26,8 +16,6 @@
   --mi-radius: 14px;
   --mi-shadow: 0 6px 24px rgba(1, 31, 85, 0.08);
 }
-
-/* ---------- Material palette mapping ---------- */
 
 [data-md-color-scheme="default"] {
   --md-primary-fg-color: var(--mi-navy);
@@ -65,7 +53,6 @@
   --md-footer-bg-color--dark: #050e24;
 }
 
-/* ---------- Layout and chrome ---------- */
 
 .md-grid {
   max-width: 1360px;
@@ -982,7 +969,6 @@ a.mi-card,
   outline: none;
 }
 
-/* ---------- Mermaid ---------- */
 
 .md-typeset .mermaid {
   text-align: center;
@@ -998,13 +984,11 @@ a.mi-card,
   height: auto;
 }
 
-/* ---------- Footer ---------- */
 
 .md-footer-meta {
   background: var(--mi-navy-900);
 }
 
-/* ---------- Responsive ---------- */
 
 @media screen and (max-width: 1100px) {
   .mi-steps { grid-template-columns: repeat(3, 1fr); row-gap: 1.4rem; }
@@ -1025,7 +1009,6 @@ a.mi-card,
   .mi-type div { grid-template-columns: 1fr; gap: 0.2rem; }
 }
 
-/* ---------- Refinements ---------- */
 
 .md-typeset .mi-card .twemoji svg,
 .md-typeset .mi-banner .twemoji svg {
@@ -1069,4 +1052,104 @@ a.mi-card,
 
 @media screen and (max-width: 600px) {
   .mi-grid--3 { grid-template-columns: 1fr; }
+}
+
+img, .gslide img {
+    image-rendering: -webkit-optimize-contrast !important;
+    image-rendering: crisp-edges !important;
+    image-rendering: pixelated !important;
+}
+
+.mi-figure {
+  margin: 1.5rem 0 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.mi-figure__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+}
+.mi-figure__scroll p { margin: 0; }
+.mi-figure__scroll img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  cursor: zoom-in;
+  transition: opacity 0.15s ease;
+}
+.mi-figure__scroll img:hover { opacity: 0.92; }
+
+.mi-figure figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  max-width: none;
+  margin: 0.6rem 0.25rem 0;
+  font-size: 0.72rem;
+  font-style: normal;
+  text-align: left;
+  color: #5b6475;
+}
+.mi-figure__open {
+  white-space: nowrap;
+  font-weight: 600;
+  color: #cf2535 !important;
+}
+
+.mi-figure__hint { display: none; }
+
+@media screen and (max-width: 44.9375em) {
+  .mi-figure__scroll img { max-width: none; width: 820px; }
+  .mi-figure__hint {
+    display: block;
+    margin: 0 0 0.75rem;
+    font-size: 0.7rem;
+    color: var(--md-default-fg-color--light);
+  }
+}
+
+.mi-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.25rem 0 1.25rem;
+}
+.mi-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--md-default-fg-color) !important;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.mi-legend__item:hover,
+.mi-legend__item:focus-visible {
+  border-color: var(--md-accent-fg-color);
+  background: var(--md-accent-fg-color--transparent);
+}
+.mi-dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; flex: none; }
+.mi-dot--navy   { background: #2f5296; }
+.mi-dot--red    { background: #cf2535; }
+.mi-dot--orange { background: #f2802e; }
+
+.mi-card[id] { scroll-margin-top: 4.5rem; }
+.mi-card:target { animation: mi-card-flash 1.6s ease; }
+@keyframes mi-card-flash {
+  0%, 40% { box-shadow: 0 0 0 3px var(--md-accent-fg-color); }
+  100%    { box-shadow: 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mi-card:target { animation: none; outline: 3px solid var(--md-accent-fg-color); }
 }

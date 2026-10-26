@@ -111,7 +111,7 @@ Domain scores are **never averaged into one number**. Averaging would let a genu
 
 **Overall result.** A case is **Elevated if any single domain is Elevated**, regardless of the other domains. A case with no Elevated domain and no qualifying discrepancy closes as `NO_CONCERN_IDENTIFIED`, and no IEP is generated.
 
-Scores are rounded to two decimal places after the final calculation <span class="mi-verify">confirm rounding rule</span>. Boundary values 1.00, 1.01, 1.99 and 2.00 are covered by tests.
+Scores are rounded to two decimal places after the final calculation. Boundary values 1.00, 1.01, 1.99 and 2.00 are covered by tests.
 
 ## Discrepancy handling
 
@@ -127,8 +127,8 @@ If `Δ ≥ DISCREPANCY_THRESHOLD` in any domain, the case is treated **exactly l
 
 | Setting | Value |
 | --- | --- |
-| Threshold | **1.00** (interim, boundary inclusive) <span class="mi-verify">confirm</span> |
-| Missing side | Never treated as zero; handled by the incomplete-intake rule <span class="mi-verify">confirm</span> |
+| Threshold | **1.00** (interim, boundary inclusive) |
+| Missing side | Never treated as zero; handled by the incomplete-intake rule |
 | Enforcement | Server-side only |
 
 !!! note "History of this rule"

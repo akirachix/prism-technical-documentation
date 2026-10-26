@@ -7,9 +7,6 @@ description: Mirai API endpoint groups, the roles allowed on each, and example c
 
 <p class="mi-lead">All endpoints live under <code>/api/v1</code>, accept and return JSON, and require a valid access token unless marked public.</p>
 
-!!! note "Where the live contract lives"
-
-    FastAPI generates the OpenAPI specification. Locally, open **Swagger UI** at `http://localhost:8000/docs` or **ReDoc** at `http://localhost:8000/redoc`. These are disabled in production. The tables below are the agreed contract derived from the Technical Requirements and data model; if a path differs in code, update this page in the same pull request. <span class="mi-verify">confirm against OpenAPI</span>
 
 ## Conventions
 

@@ -1,8 +1,3 @@
-/*
- * Mirai docs: click-to-zoom for diagrams and screenshots.
- * Any image with the class "zoomable", or inside .mi-phones / .mi-desktops,
- * opens full screen. Works with Material's instant navigation (document$).
- */
 (function () {
   var SELECTOR = "img.zoomable, .mi-phones img, .mi-desktops img";
 

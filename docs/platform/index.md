@@ -42,7 +42,7 @@ flowchart LR
 | Database | Managed PostgreSQL with encryption at rest |
 | Backups | Supabase storage, encrypted, restricted access |
 | Secrets | HashiCorp Vault |
-| Provider and region | To be confirmed. The security requirements ask for hosting within the East Africa geographic boundary, and any cross-border processing (including AI endpoints) must be reviewed against the Kenya Data Protection Act transfer conditions. <span class="mi-verify">confirm</span> |
+| Provider and region | To be confirmed. The security requirements ask for hosting within the East Africa geographic boundary, and any cross-border processing (including AI endpoints) must be reviewed against the Kenya Data Protection Act transfer conditions.
 
 ## CI/CD
 
@@ -78,7 +78,7 @@ One-time setup: in the repository's **Settings → Pages**, set **Source** to **
 ## Secrets and configuration
 
 - All secrets (database credentials, JWT signing key, field-encryption keys, Gemini, Resend, reCAPTCHA) live in **HashiCorp Vault** and are injected at container start.
-- Nothing secret is committed. A `.env.example` lists variable names only.
+- Nothing secret is committed.
 - Field-encryption keys are versioned (`key_version`) so they can be rotated without re-encrypting everything at once.
 - Production disables Swagger / ReDoc, debug mode and verbose logging, and closes unused ports.
 
@@ -89,7 +89,7 @@ One-time setup: in the repository's **Settings → Pages**, set **Source** to **
 | Frequency | Automated daily database backups |
 | Encryption | Encrypted at rest |
 | Location | Supabase storage, separate from the primary database |
-| Retention | Rolling, expiring after 30 days (requirements allow up to 35) <span class="mi-verify">confirm</span> |
+| Retention | Rolling, expiring after 30 days (requirements allow up to 35) |
 | Access | Named platform administrators only; every access logged |
 | Testing | Quarterly restore drill into an isolated environment |
 | Alignment | Backup expiry must not keep data longer than the [retention schedule](../security/privacy-compliance.md#data-retention) allows |

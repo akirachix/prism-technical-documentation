@@ -9,39 +9,55 @@ description: Mirai's layered architecture, its main components, the decisions be
 
 ## Secure system architecture
 
-![Mirai secure system architecture: users and devices, perimeter security, application layer, data layer and external services](../assets/architecture/secure-system-architecture.png){ .zoomable }
+<figure class="mi-figure" markdown>
+<div class="mi-figure__scroll" markdown>
+![Mirai secure system architecture: users and devices, perimeter security, application layer, data layer and external services](../assets/architecture/secure-system-architecture@3x.webp){ .zoomable loading=lazy width="1782" height="820" }
+</div>
+<figcaption>
+<span>Five layers, read left to right. Every request crosses them in order.</span>
+<a class="mi-figure__open" href="../assets/architecture/secure-system-architecture@3x.webp" target="_blank" rel="noopener">Open full size &#8599;</a>
+</figcaption>
+</figure>
 
-<p class="mi-caption">Click any diagram to open it full screen.</p>
+<p class="mi-figure__hint">Tap a diagram to open it full screen, then pinch to zoom in on any box. You can also swipe sideways to pan.</p>
 
-The architecture is read left to right as five layers. Every request crosses all of them in order; nothing reaches the data layer except through the Mirai API.
+<nav class="mi-legend" aria-label="Jump to a layer">
+<a class="mi-legend__item" href="#layer-1"><span class="mi-dot mi-dot--navy"></span>1 Users and devices</a>
+<a class="mi-legend__item" href="#layer-2"><span class="mi-dot mi-dot--red"></span>2 Perimeter security</a>
+<a class="mi-legend__item" href="#layer-3"><span class="mi-dot mi-dot--orange"></span>3 Application layer</a>
+<a class="mi-legend__item" href="#layer-4"><span class="mi-dot mi-dot--navy"></span>4 Data layer</a>
+<a class="mi-legend__item" href="#layer-5"><span class="mi-dot mi-dot--red"></span>5 External services</a>
+</nav>
+
+The architecture is read left to right as five layers. Every request crosses all of them in order; nothing reaches the data layer except through the Mirai API. Use the chips above to jump to a layer.
 
 <div class="mi-grid" markdown>
 
-<div class="mi-card mi-card--navy" markdown>
+<div class="mi-card mi-card--navy" id="layer-1" markdown>
 :material-cellphone-link:
 ### 1. Users and devices
 Parents, teachers and school administrators use the same mobile-first PWA over **HTTPS/TLS**. Parents open assessments, read their child's report and plan, and see professional contacts. Teachers fill in screenings, generate and approve IEPs, answer evaluations, onboard parents and create student profiles. School administrators approve IEPs and onboard or offboard teachers.
 </div>
 
-<div class="mi-card mi-card--red" markdown>
+<div class="mi-card mi-card--red" id="layer-2" markdown>
 :material-wall-fire:
 ### 2. Perimeter security
 **DNS and DDoS protection** (domain whitelisting, rate limiting, dropping non-HTTPS traffic), a **WAF** (input and output validation, Pydantic schemas, SQLAlchemy ORM against SQL injection, HTML stripping against XSS, reCAPTCHA v3) and an **API gateway** (JWT validation on every endpoint, token blacklisting, strict rate limits, secure headers).
 </div>
 
-<div class="mi-card mi-card--orange" markdown>
+<div class="mi-card mi-card--orange" id="layer-3" markdown>
 :material-api:
 ### 3. Application layer (Mirai API)
 Authentication and email OTP, role-based authorisation, platform governance middleware, screening intake modules, the **core evaluation and scoring engine** and the **AI engine**, each a separate module with its own boundary.
 </div>
 
-<div class="mi-card mi-card--navy" markdown>
+<div class="mi-card mi-card--navy" id="layer-4" markdown>
 :material-database-lock-outline:
 ### 4. Data layer
 Encrypted PostgreSQL with an isolated relational schema and random UUID keys, application-layer field encryption with key versioning, an append-only audit table, encrypted backups on Supabase with 30-day expiry, and HashiCorp Vault for secrets.
 </div>
 
-<div class="mi-card mi-card--red" markdown>
+<div class="mi-card mi-card--red" id="layer-5" markdown>
 :material-cloud-outline:
 ### 5. External services
 **Gemini API with File Search** (curriculum store only, no identity data, draft-state constraint), **staff MFA** (Google Authenticator, email OTP) and **communication services** (Resend / SMTP with single-use tokens).
@@ -53,9 +69,24 @@ Encrypted PostgreSQL with an isolated relational schema and random UUID keys, ap
 
 The second diagram shows the same system as functional modules and the messages between them. Each role's PWA talks only to the Mirai API; the API talks to the database and, for generation only, to the AI service.
 
-![Mirai system architecture: parent, teacher and school administrator PWAs talking to Assessment, Report Generation, Parent Recommendations, Evaluation, IEP, IEP Approval and School Management modules through the Mirai API](../assets/architecture/system-architecture.png){ .zoomable }
+<figure class="mi-figure" markdown>
+<div class="mi-figure__scroll" markdown>
+![Mirai system architecture: parent, teacher and school administrator PWAs talking to Assessment, Report Generation, Parent Recommendations, Evaluation, IEP, IEP Approval and School Management modules through the Mirai API](../assets/architecture/system-architecture@3x.webp){ .zoomable loading=lazy width="1468" height="912" }
+</div>
+<figcaption>
+<span>Each role's PWA talks only to the Mirai API; the API alone talks to the database and, for generation, to the AI service.</span>
+<a class="mi-figure__open" href="../assets/architecture/system-architecture@3x.webp" target="_blank" rel="noopener">Open full size &#8599;</a>
+</figcaption>
+</figure>
 
-## Components
+??? info "Reading the functional diagram"
+
+    - **Left:** the parent, teacher and school administrator PWAs. They never talk to each other or to the database.
+    - **Middle:** the Mirai API modules: Assessment, Report Generation, Parent Recommendations, Evaluation, IEP, IEP Approval and School Management.
+    - **Right:** PostgreSQL, reached only through the API, and the AI service, called only to generate drafts.
+    - Each module is described under [Components](#components).
+
+## Components { #components }
 
 !!! note "Progressive Web App (client)"
 

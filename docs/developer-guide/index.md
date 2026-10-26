@@ -15,7 +15,6 @@ description: How Team Prism works on Mirai - repositories, branching, convention
 | Frontend | Next.js PWA for all roles |
 | `prism-technical-documentation` | This site (MkDocs + Material) |
 
-Ask a maintainer for access to the backend and frontend repositories. Their exact URLs are listed in the team workspace. <span class="mi-verify">add links</span>
 
 ## Workflow
 

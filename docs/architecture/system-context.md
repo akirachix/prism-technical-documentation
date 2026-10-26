@@ -106,7 +106,7 @@ flowchart LR
 | **Google reCAPTCHA v3** | Bot and brute-force protection | Browser risk signals | No student data; configured for privacy |
 | **HashiCorp Vault** | Secrets and encryption keys | Credentials, keys | Never in git; fetched at runtime |
 | **Supabase storage** | Encrypted database backups | Encrypted backup files | Restricted, logged access; 30-day expiry |
-| **Hosting provider** | Application and database hosting | Everything at rest | Isolated network, disk encryption; region to be confirmed <span class="mi-verify">confirm</span> |
+| **Hosting provider** | Application and database hosting | Everything at rest | Isolated network, disk encryption i.e Heroku|
 
 ## Main request flows
 

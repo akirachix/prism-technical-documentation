@@ -12,15 +12,18 @@ description: The Mirai brand and UI style guide - logo, colour, typography, icon
 <div class="mi-grid mi-grid--2" markdown>
 
 <div class="mi-card" markdown>
-![Mirai horizontal logo](../assets/brand/mirai-logo.svg){ .mi-w-md }
+![Mirai horizontal logo](../assets/brand/mirai-logo.png){ width="500"}
 
 **Horizontal lock-up.** Use in headers, documents and the web app sidebar.
 </div>
 
 <div class="mi-card" markdown>
 <div style="display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap" markdown>
-![Mirai mark on light](../assets/brand/mirai-mark.svg){ width="96" }
-<span style="background:#011F55;border-radius:14px;padding:12px;display:inline-block" markdown>![Mirai mark on navy](../assets/brand/mirai-mark-light.svg){ width="72" }</span>
+![Mirai mark on light](../assets/brand/mirai-mark.png){ width="180" }
+
+
+
+<span style="background:#011F55;border-radius:14px;padding:12px;display:inline-block" markdown>![Mirai mark on navy](../assets/brand/prism-logo.png){ width="150" }</span>
 </div>
 
 **The mark.** Two figures standing side by side, drawn as one continuous line that forms the *m*. Use alone for app icons and favicons.

@@ -7,9 +7,6 @@ description: Set up the Mirai backend, frontend and documentation site on a loca
 
 <p class="mi-lead">Get the Mirai API, the PWA and this documentation site running locally with synthetic data.</p>
 
-!!! note "Placeholders"
-
-    Repository URLs and folder names below use placeholders such as `<backend-repo-url>`. Replace them with the real values from the team workspace, and update this page if any command differs from the repository README. <span class="mi-verify">confirm against repos</span>
 
 ## Prerequisites
 
@@ -26,12 +23,12 @@ description: Set up the Mirai backend, frontend and documentation site on a loca
 ### 1. Clone and install
 
 ```bash
-git clone <backend-repo-url> mirai-backend
-cd mirai-backend
+git clone https://github.com/akirachix/prism-backend
+cd prism-backend
 
-python3 -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-python -m pip install -r requirements.txt
+uv venv
+uv pip install -r pyproject.toml --group dev
+
 ```
 
 ### 2. Create the database
@@ -102,7 +99,8 @@ On first start, the API seeds the system administrator from `SYSTEM_ADMIN_EMAIL`
 ### 5. Run
 
 ```bash
-uvicorn app.main:app --reload --port 8000
+uv run --no-sync uvicorn main:app --reload
+
 ```
 
 | URL | What |
@@ -113,17 +111,16 @@ uvicorn app.main:app --reload --port 8000
 ### 6. Test
 
 ```bash
-pytest                     # all tests
-pytest tests/scoring -q    # golden scoring tests only
-bandit -r app -ll          # static security scan
-pip-audit                  # dependency vulnerabilities
+uv run --no-sync ruff check .
+uv run --no-sync ruff format --check .
+uv run --no-sync pytest --cov --cov-report=term-missing
 ```
 
 ## Frontend
 
 ```bash
-git clone <frontend-repo-url> mirai-frontend
-cd mirai-frontend
+git clone https://github.com/akirachix/prism-frontend.git
+cd prism-frontend
 npm install
 ```
 
@@ -140,6 +137,9 @@ Run:
 ```bash
 npm run dev        # http://localhost:3000
 npm run build && npm start   # production build, needed to test the service worker
+npx prettier --write
+npm run lint
+npm run test
 ```
 
 !!! tip "Testing offline behaviour"

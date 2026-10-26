@@ -63,7 +63,7 @@ An append-only audit log records who did what to which record, without storing p
 | Account creation | Top-down only; no public sign-up |
 | Passwords | Argon2id or bcrypt; minimum 8 characters; must differ from the temporary password |
 | Staff MFA | Email verification, reCAPTCHA v3 on sign-in and sensitive actions, Google Authenticator TOTP verified server-side |
-| Parents | Password plus a verified relationship to their own child; second factor <span class="mi-verify">confirm</span> |
+| Parents | Password plus a verified relationship to their own child; second factor|
 | Replay protection | Each TOTP time-step accepted once (`last_totp_step`) |
 | Lockout | 5 failures lock the account for 15 minutes |
 | Resets | Single-use, short-lived tokens; staff credential resets go through administrators |
@@ -88,9 +88,6 @@ An append-only audit log records who did what to which record, without storing p
 | Referral packet | De-identified and encrypted before download |
 | Backups | Encrypted, restricted, logged access |
 
-!!! warning "Reviewer note on the encryption algorithm"
-
-    The security requirements describe field and backup encryption as "RSA-256". RSA is an asymmetric algorithm used for key exchange and signatures, not for encrypting database fields, and "256" is a symmetric key length. The recommended implementation is **AES-256-GCM** (authenticated symmetric encryption) for fields and backups, with keys held in Vault. Please confirm and update the requirements document. Logged in the [Decision Log](../reference/decision-log.md).
 
 ## Audit logging
 
