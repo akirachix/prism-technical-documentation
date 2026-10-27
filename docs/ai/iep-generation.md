@@ -1,11 +1,11 @@
 ---
 title: IEP and Evaluation Generation
-description: How Mirai drafts IEPs and six-week evaluation questions, the prompt and output contracts, approval and regeneration rules.
+description: How Mirai drafts IEPs, home recommendations and six-week evaluation questions with Gemini, the prompt and output contracts, the safety checks, and how plans are approved.
 ---
 
 # IEP and Evaluation Generation
 
-<p class="mi-lead">From an Elevated result to an approved, curriculum-grounded classroom plan, and six weeks later, to questions that check whether it is working.</p>
+<p class="mi-lead">From a scored case to an approved, curriculum-grounded classroom plan, and six weeks later, to questions that check whether it is working. All of this lives in <code>prism-backend/services/ai.py</code>.</p>
 
 ## End-to-end flow
 
@@ -18,147 +18,109 @@ sequenceDiagram
     actor SA as School admin
     actor P as Parent
 
-    Note over API: Case reaches Elevated or discrepancy
-    T->>API: Generate plan
-    API->>API: check gate and regeneration counter
-    API->>AI: prompt (domains, age band, de-identified summary)
-    AI-->>API: JSON draft + chunk references
-    API->>API: validate schema, scan for diagnostic language
-    API-->>T: IEP v1 DRAFT
-    T->>API: edit and submit
-    T->>API: approve
+    T->>API: POST /ai/cases/{case_id}/iep
+    API-->>T: 202, job QUEUED
+    API->>AI: learner profile (no names) + File Search over curriculum, tools, sample IEPs
+    AI-->>API: JSON draft + retrieved document titles
+    API->>API: needs at least 1 reference, rejects personal names
+    API->>API: save IEP as DRAFT, job SUCCEEDED
+    T->>API: poll GET /ai/jobs/{job_id}
+    T->>API: submit, then approve
     SA->>API: approve
-    API->>API: ACTIVE, approved_at, unlock = +6 weeks
-    API->>AI: build evaluation questions from short-term goals
-    AI-->>API: questions
-    API-->>P: plan visible, report rebuilt
-    Note over T,P: Six weeks later, the evaluation unlocks
+    API->>API: ACTIVE, evaluation_unlock_date = approval + 6 weeks
+    T->>API: POST /ai/ieps/{iep_id}/evaluation-questions
+    AI-->>API: up to 5 questions from the short-term goals
+    Note over T,P: Six weeks after approval, the evaluation opens
 ```
 
 ## When generation is allowed
 
-| Condition | Result |
-| --- | --- |
-| Any domain `combined_score >= 2.00` | Allowed |
-| Any domain discrepancy at or above the threshold | Allowed |
-| Neither | `400 GENERATION_NOT_ALLOWED`; case is `NO_CONCERN_IDENTIFIED` |
-| Regeneration limit reached | `429 REGENERATION_COOLDOWN` with the time the cooldown ends |
-| AI service unavailable | `503` with a neutral message; teacher can retry or write the plan manually |
+| Condition | Result | Evidence |
+| --- | --- | --- |
+| Caller is the case's teacher | Job queued (`202`) | `services/ai.py` (`_case_for_teacher`) |
+| Another job of the same kind is queued or running | `409` | `_reject_duplicate` |
+| A plan for the case is already awaiting approval | Job fails with "Reject it before generating a new one" | `generate_iep_for_case` |
+| AI settings missing | Job fails with "The AI service is not configured yet" | `GeminiProvider.__init__` |
+| Gemini error | Job fails with a neutral message | `run_job` |
 
-## The plan structure
+!!! warning "Planned, not built"
 
-The generated IEP identifies the domain(s) that triggered it and stays editable by the initiating teacher.
+    The score gate (generate only when a domain is Elevated), the regeneration limit (3 attempts, then a 24-hour cooldown, [D-09](../reference/decision-log.md#decisions)) and the teacher's 1–5 quality rating are designed but not in the code. Today any teacher of the case can start a generation at any time, subject only to the checks above.
 
-```json
-{
-  "triggering_domains": ["DYSLEXIA"],
-  "age_band": "6-9",
-  "summary": "Short, strengths-first description of what the classroom observations show.",
-  "strengths": ["Enjoys being read to", "Strong verbal recall"],
-  "focus_areas": ["Letter-sound matching", "Reading short words aloud"],
-  "strategies": [
-    "Seat near the front and use large-print word cards",
-    "Pair reading tasks with picture prompts"
-  ],
-  "short_term_goals": [
-    "Match 10 common letter sounds with picture support",
-    "Read 5 three-letter words aloud with one prompt"
-  ],
-  "long_term_goals": ["Read a short CBC-level passage with support"],
-  "classroom_accommodations": ["Extra time on reading tasks", "Oral responses accepted"],
-  "home_link": "One sentence on how home activities connect to the goals.",
-  "references": ["<file search chunk id>", "<file search chunk id>"],
-  "disclaimer": "This is a support plan, not a diagnosis."
-}
-```
+## What the model returns
 
-| Field | Stored in |
-| --- | --- |
-| Whole plan rendered as markdown | `iep.generated_content` |
-| `short_term_goals` | `iep.short_term_goals` (source of the evaluation questions) |
-| `strategies` | `iep.strategies` |
-| `references` | `iep.rag_file_references` |
+| Kind | Output fields (`schemas/ai.py`) | Stored in |
+| --- | --- | --- |
+| IEP | `content_markdown`, `short_term_goals`, `strategies` | `iep.generated_content`, `iep.short_term_goals`, `iep.strategies`; the retrieved document titles go to `iep.rag_file_references` |
+| Recommendation | `message`, `home_activities` (each `title`, `steps`) | `recommendation` |
+| Evaluation questions | `questions` (up to 5) | `iep_evaluation_question` |
 
-The example values above are illustrative only.
+Generated lists are de-duplicated and trimmed (`_tidy`), and IEPs are saved with `generated_by` set to the AI value.
 
 ## Prompt contract
 
-The prompt is assembled server-side from a versioned template. The model is told what it may and may not do.
+The system instruction sent with every request (`SYSTEM_PROMPT`):
 
 ```text
-SYSTEM
-You write classroom support plans for early-years teachers in Kenya.
-Ground every strategy in the retrieved KICD CBC inclusive-education guidance.
-Never diagnose. Never name a condition as something the child "has".
-Use plain, strengths-first language. Activities must need only common
-classroom or household materials. Return JSON matching the schema.
-
-USER
-Triggering domains: {domains_with_levels}
-Age band: {age_band}   Grade band: {grade_band}
-Observed areas that scored high: {deidentified_item_summary}
-Teacher request (regeneration only): {sanitised_teacher_note}
+You support teachers and parents of children who may need extra learning support,
+in Kenya. Never write the name of the child or of any person: say 'the learner'.
+Never diagnose, and never name a medical or developmental condition.
+Use plain, kind language. Before writing anything, you must search the provided
+reference documents with the file search tool, and base your answer only on what
+you find there. If the documents do not cover something, leave it out instead of
+guessing.
 ```
+
+The request then carries the learner profile (age, grade, home language and the areas of concern, built by `build_profile`) and asks for JSON matching the output schema. Temperature is `0.3`. Each kind searches only its own documents:
+
+| Kind | File Search filter |
+| --- | --- |
+| IEP | `Curriculum`, `Screening tools`, `Sample IEPs` |
+| Recommendation | `Parent recommendations`, `Screening tools` |
+| Evaluation questions | `Sample IEPs`, `Screening tools` |
+
+## Safety checks
+
+| Check | Behaviour | Evidence |
+| --- | --- | --- |
+| Grounding | A draft with no retrieved reference is regenerated once; if it still has none, nothing is saved | `_with_evidence` |
+| Personal names | Output containing a name or part of a name from the case is rejected (IEP, evaluation questions) or retried once with feedback (recommendation) | `assert_no_names`; `tests/test_ai.py` |
+| Invalid output | Recommendation output that fails validation is retried once with the validation message as feedback | `generate_recommendation_for_case` |
+| Condition words | Recommendations that name autism, ADHD or dyslexia, or mention a diagnosis, fail validation. IEP text is not checked yet | `schemas/recommendation.py` |
+| Draft only | An IEP is saved as `DRAFT` and becomes visible to the parent only once `ACTIVE` | `services/iep.py` |
 
 ## Review, approval and versions
 
 | Step | Who | Effect |
 | --- | --- | --- |
-| Draft created | System | `iep.status = DRAFT`, `version_number = n` |
-| Edit | Initiating teacher only | Content, goals and strategies updated; edit recorded |
-| Submit | Teacher | `PENDING_APPROVAL`; case `IEP_PENDING_APPROVAL`; school admins notified |
-| Approve | Teacher and school admin (same school) | When both are true: `ACTIVE`, `approved_at` set, `evaluation_unlock_date = approved_at + 6 weeks`, parent can view |
-| Reject | Teacher or school admin, reason required | `REJECTED`; teacher creates a new version; old version `SUPERSEDED` |
+| Draft created | System | `iep.status = DRAFT` |
+| Edit | Teacher | Content, goals and strategies updated while `DRAFT`, `PENDING_APPROVAL` or `REJECTED` |
+| Submit | Teacher | `PENDING_APPROVAL` |
+| Approve | Teacher and school admin | When both have approved: `ACTIVE`, `evaluation_unlock_date = approval + 6 weeks` |
+| Reject | Teacher or school admin, reason required | `REJECTED`, with `rejection_reason` |
 
-The school administrator can read the draft and the three domain scores while approving. They cannot read raw answers, and cannot rewrite the teacher's content.
+!!! danger "Approval is not yet checked against the caller"
 
-## Regeneration limits
-
-```mermaid
-flowchart LR
-    R[Teacher clicks Regenerate] --> C{Attempts in<br/>this cycle < 3?}
-    C -- yes --> G[Generate new draft<br/>attempts + 1]
-    C -- no --> W{24 h since<br/>third attempt?}
-    W -- no --> B[Blocked: show<br/>when it reopens]
-    W -- yes --> RESET[New cycle<br/>attempts = 0] --> G
-```
-
-- The counter is stored **per case**, not per session or device.
-- The UI shows remaining attempts and a cooldown timer.
-- Every attempt is audited as `GENERATE`.
+    `POST /ieps/{iep_id}/approve` takes the approver's id from the request body and the route has no authentication. See [Security gaps](../reference/implementation-status.md#security-gaps).
 
 ## Six-week evaluation questions
 
-When an IEP becomes active, the AI service turns each short-term goal into one monitoring question, stored in `iep_evaluation_question` with a `position`.
-
-| Short-term goal | Generated question |
-| --- | --- |
-| Match 10 common letter sounds with picture support | Since the plan started, how has matching letter sounds with pictures changed? |
-| Read 5 three-letter words aloud with one prompt | How has reading short words aloud changed? |
+Once an IEP is `ACTIVE`, the teacher requests questions (`POST /ai/ieps/{iep_id}/evaluation-questions`). The AI writes up to five questions covering the short-term goals, about observable behaviour only.
 
 Teacher and parent each answer every question on the same scale:
 
 | Score | -2 | -1 | 0 | 1 | 2 |
 | --- | --- | --- | --- | --- | --- |
-| Label | Much harder | A little harder | No change | A little better | Much better |
+| Label | Much worse | A little worse | No change | A little better | Much better |
 
-Questions are visible only after `evaluation_unlock_date`; before that, the screen shows a lock with the opening date and progress ("Week 2 of 6"). The case becomes `COMPLETED` when both informants have answered every question, and the outcome is kept on the child's record.
-
-## Failure handling
-
-| Failure | Behaviour |
-| --- | --- |
-| Timeout or 5xx from Gemini | Retry with backoff; then show a neutral error with Retry |
-| Invalid JSON | Retry once with a stricter instruction; then fail safely |
-| Diagnostic language detected | Draft discarded and regenerated (counts as an attempt) |
-| Retrieval returns nothing | Fail safely; never generate without grounding |
-| Evaluation question generation fails | Teacher can enter the questions manually from the goals |
+Questions open exactly six weeks after approval; before that the screen shows the opening date and progress ("Week 2 of 6"). Evidence: `services/iep_evaluation_question.py` (`evaluation_window`), `tests/test_iep_evaluation_window.py`.
 
 ## Tests
 
-- Gate cannot be bypassed by calling the endpoint directly (AI-01, AI-12).
-- Mocked Gemini in unit and integration tests; no live calls in CI.
-- Limiter: three attempts, then cooldown, then reset (AI-08, AI-09).
-- Approval transitions and cross-school denial.
-- Output guard rejects diagnostic phrasing (AI-05).
-- Home activities match the triggering domain and use household materials (AI-06, AI-13).
+| Area | File |
+| --- | --- |
+| Job lifecycle, duplicate jobs, plan-awaiting-approval block, names rejected and retried | `tests/test_ai.py` |
+| Evaluation questions | `tests/test_ai_evaluation_questions.py` |
+| Approval and the six-week unlock | `tests/test_iep.py`, `tests/test_iep_evaluation_window.py` |
+
+Gemini is replaced by a fake in tests (`fake_ai` fixture); no live calls are made.

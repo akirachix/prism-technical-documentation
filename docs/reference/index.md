@@ -34,7 +34,7 @@ Team Prism members, supervisors and workstreams.
 | Instrument | Domain | Ages in Mirai | Notes |
 | --- | --- | --- | --- |
 | **CAST** (Childhood Autism Spectrum Test) | Autism | 4 to 9 | Observational questionnaire |
-| **ADHD Rating Scale IV, Preschool Version** | ADHD | 4 to 5 | Observational rating of attention and activity |
+| **ADHD Rating Scale IV, Preschool Version** | ADHD | Under 5 in the code; 4 to 5 in the requirements ([C-10](decision-log.md#conflicts-between-source-documents)) | Observational rating of attention and activity |
 | **SNAP-IV** | ADHD | 6 to 9 | Observational rating scale |
 | **CLDQ-R Dyslexia Subscale** | Dyslexia | 6 to 9 | Depends on reading instruction having started |
 

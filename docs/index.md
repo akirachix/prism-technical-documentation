@@ -10,7 +10,7 @@ hide:
 <div class="mi-hero__inner" markdown>
 <div markdown>
 
-![Mirai](assets/brand/mirai-mark-light.png){ .mi-hero__logo }
+![Mirai](assets/brand/mirai-mark-on-dark.svg){ .mi-hero__logo }
 
 <h1>Notice early.<br><span>Support sooner.</span></h1>
 
@@ -113,19 +113,19 @@ Six weeks after approval, teacher and parent rate progress on the plan's goals a
 <div class="mi-card mi-card--red" markdown>
 :material-account-child-outline:
 ### Age-gated intake
-Ages 4 to 5 route to CAST and the ADHD Rating Scale IV Preschool Version. Ages 6 to 9 route to CAST, SNAP-IV and the CLDQ-R Dyslexia Subscale.
+Children under 5 are screened with CAST and the ADHD Rating Scale IV Preschool Version; from 5, SNAP-IV replaces it; from 6, the CLDQ-R Dyslexia Subscale is added.
 </div>
 
 <div class="mi-card mi-card--orange" markdown>
 :material-account-multiple-check-outline:
 ### Two perspectives per case
-One teacher screening and one parent screening per case, driven by a finite state machine so question order is fixed and auditable.
+One teacher screening and one parent screening per case, from stored questions in a fixed order; the teacher's opening answers decide which areas are screened.
 </div>
 
 <div class="mi-card mi-card--navy" markdown>
 :material-calculator-variant-outline:
 ### Deterministic scoring
-Fixed, published formulas produce Low, Medium or Elevated per domain. A case escalates if any single domain is Elevated.
+Fixed, published formulas score each domain from 0.00 to 3.00. A support plan is recommended when the highest domain reaches 2.00.
 </div>
 
 <div class="mi-card mi-card--red" markdown>
@@ -143,7 +143,7 @@ Parents get domain-matched home activities, a report they control, and a directo
 <div class="mi-card mi-card--navy" markdown>
 :material-shield-lock-outline:
 ### Privacy by design
-Strict role-based access, tenant isolation per school, staff MFA, field-level encryption and an append-only audit log aligned to the Kenya Data Protection Act, 2019.
+Role-based access, TOTP sign-in for every role and an audit log the application cannot alter, designed against the Kenya Data Protection Act, 2019. [Implementation Status](reference/implementation-status.md) lists what is still being built.
 </div>
 
 </div>

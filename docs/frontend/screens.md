@@ -13,7 +13,7 @@ description: Hi-fi screens of the Mirai PWA for teachers, parents, school admini
 | Parent | Phone | 18 | [Parent](#parent) |
 | School administrator | Desktop | 5 | [School administrator](#school-administrator) |
 | System administrator | Desktop and phone | 7 desktop, 9 phone | [System administrator](#system-administrator) |
-| Brand | n/a | Logo and style guides | [Brand and style guide](#brand) |
+| Brand | n/a | Logo and style guides | [Style Guide](style-guide.md) |
 
 ## Teacher { #teacher }
 
@@ -430,9 +430,9 @@ The system administrator onboards schools and professionals and watches screenin
 | --- | --- |
 | Sign-in | Teachers, parents and administrators cannot sign themselves up. The screen says to ask the school administrator for an account. |
 | First sign-in | Password rules are shown live: at least 8 characters, different from the temporary password, both entries match. |
-| Verify email | A six-digit code is sent by email; "Resend code" is always visible. |
+| Verify email | The design shows an emailed code. In the built app this step takes the 6-digit code from the authenticator app (TOTP). |
 | Parent invitation | The invitation is only for the parent account. The parent confirms their email, then sets a name and a new password. |
-| Add a student | Age comes from the date of birth; Mirai is for ages 4 to 9. Duplicate admission numbers in the same school are rejected. The parent receives a temporary password they must change. |
+| Add a student | Age comes from the date of birth; Mirai is for ages 4 to 9 (the API currently accepts 3 to 12, [Q-13](../reference/decision-log.md#open-questions)). Duplicate admission numbers in the same school are rejected. The parent receives a temporary password they must change. |
 | Students | Teachers only see children linked to them. |
 | Student journey | The plan unlocks only when both screenings are done. |
 | Screening | Answers save as you go, even if the network drops. "Save and exit" lets the teacher come back later. |

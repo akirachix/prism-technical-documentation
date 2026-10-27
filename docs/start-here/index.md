@@ -76,14 +76,16 @@ flowchart LR
     T([Teacher notices a<br/>persistent concern]) --> R[Register student<br/>and link parent]
     R --> C[Open case]
     C --> AG{Age gate}
-    AG -->|4 to 5| P1[CAST +<br/>ADHD RS-IV Preschool]
-    AG -->|6 to 9| P2[CAST + SNAP-IV +<br/>CLDQ-R Dyslexia]
+    AG -->|under 5| P1[CAST +<br/>ADHD RS-IV Preschool]
+    AG -->|5| P3[CAST + SNAP-IV]
+    AG -->|6 and over| P2[CAST + SNAP-IV +<br/>CLDQ-R Dyslexia]
+    P3 --> TS
     P1 --> TS[Teacher screening]
     P2 --> TS
     TS --> PS[Parent screening]
     PS --> S[[Deterministic scoring<br/>per domain, 0.00 to 3.00]]
-    S -->|No domain Elevated| NC([No Concern Identified])
-    S -->|Any domain Elevated<br/>or large discrepancy| IEP[AI drafts IEP<br/>from KICD guidance]
+    S -->|Below 2.00| NC([No Concern Identified])
+    S -->|Highest domain<br/>2.00 or more| IEP[Teacher requests<br/>AI IEP draft]
     IEP --> AP{Teacher and school<br/>admin approve?}
     AP -->|Reject or edit| IEP
     AP -->|Both approve| ACT[IEP active<br/>parent can view]
@@ -135,12 +137,12 @@ A free first consultation does not mean the pathway is free. Parent-facing messa
 
 | Layer | Technology |
 | --- | --- |
-| Client | Next.js Progressive Web App, mobile-first with desktop layouts; service-worker offline queue |
+| Client | Next.js PWA for teachers and parents (mobile-first); Next.js dashboard for administrators; service worker with offline page |
 | API | Python, FastAPI, Pydantic validation, JWT sessions, TOTP MFA |
-| Data | PostgreSQL (shared schema, school-scoped), SQLAlchemy ORM, application-layer field encryption |
+| Data | PostgreSQL (shared schema), SQLAlchemy ORM, Alembic migrations |
 | AI | Gemini API with a managed File Search Store holding KICD inclusive-education guidance |
-| Email | Resend / SMTP for invitations, verification and one-time codes |
-| Secrets and backups | HashiCorp Vault for secrets; encrypted backups on Supabase storage |
+| Email | SMTP for invitations and password resets |
+| Secrets and backups | Environment variables today; Vault and encrypted backups *planned* ([Implementation Status](../reference/implementation-status.md)) |
 
 The details of each layer live under [Architecture](../architecture/index.md), [Backend](../backend/index.md), [AI](../ai/index.md), [Frontend](../frontend/index.md) and [Platform](../platform/index.md).
 

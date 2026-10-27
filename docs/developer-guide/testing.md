@@ -11,6 +11,29 @@ description: Mirai's verification strategy - test levels, priority scenarios, te
 
     These tests check that Mirai **implements its approved rules correctly**. They do not establish the clinical validity, sensitivity or specificity of the screening instruments, because Mirai is explicitly non-diagnostic.
 
+## Test suites in the code
+
+The strategy below is what the tests aim to cover. These are the automated suites that exist today.
+
+| Repository | Framework | Location | Size | Run it |
+| --- | --- | --- | --- | --- |
+| `prism-backend` | pytest (+ pytest-cov) on in-memory SQLite | `tests/` (`conftest.py` sets `DATABASE_URL=sqlite://`) | 31 test files | `uv run --no-sync pytest --cov --cov-report=term-missing` |
+| `prism-frontend` | Jest + React Testing Library | `tests/components/`, `tests/lib/`, `tests/notifications/` | 29 test files | `npm run test` |
+| `prism-dashboard` | Jest + React Testing Library | `tests/api/`, `tests/auth/`, `tests/professionals/`, `tests/schools/`, `tests/school-admin/`, `tests/system-admin/`, `tests/ui/`, `tests/utils/` | 38 test files | `npm run test` |
+
+Backend tests refuse to run against a non-SQLite database (`database.py`), so they never touch a real database. On pull requests, `ci.yml` runs the backend suite with coverage (backend README).
+
+Examples of what the backend suite checks, by file:
+
+| File | Checks |
+| --- | --- |
+| `tests/test_screening_rules.py`, `tests/test_domain_score.py` | Age gating, item scoring, scaling to 0 to 3, rounding, combining teacher and parent scores |
+| `tests/test_auth.py`, `tests/test_security.py` | Sign-in stages, lockout, token scopes and revocation, password hashing, TOTP |
+| `tests/test_parent_access.py` | A parent cannot read another family's case |
+| `tests/test_ai.py`, `tests/test_ai_evaluation_questions.py` | AI jobs, names and condition words rejected, missing references |
+| `tests/test_iep.py`, `tests/test_iep_evaluation_window.py` | Dual approval and the six-week unlock |
+| `tests/test_migrations.py` | Migrations apply cleanly |
+
 ## Key verification risks
 
 | Risk | Example |

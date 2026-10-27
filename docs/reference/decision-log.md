@@ -14,12 +14,12 @@ description: Architecture and product decisions for Mirai, open questions with i
 | D-01 | Mirai is non-diagnostic; no clinical labels anywhere | Stigma tracks the label; clinical capacity is out of scope | PRD, Technical Requirements |
 | D-02 | Scoring is deterministic, server-side and isolated from AI | Identical inputs give identical, explainable outputs | Technical Requirements |
 | D-03 | Domains are scored separately and never blended; any Elevated domain makes the case Elevated | Averaging would dilute a real concern | Technical Requirements |
-| D-04 | A large teacher and parent discrepancy is treated like an Elevated result | Disagreement is a signal; waiting delays help. Replaces the earlier "force Medium at 1.5" draft | Technical Requirements (supersedes Product Management draft) |
-| D-05 | Intake is a finite state machine, not a chatbot | Deterministic and auditable question order | Technical Requirements |
+| D-04 | A large teacher and parent discrepancy is treated like an Elevated result (*not built yet*) | Disagreement is a signal; waiting delays help. Replaces the earlier "force Medium at 1.5" draft | Technical Requirements (supersedes Product Management draft) |
+| D-05 | Intake uses stored, fixed questions, not a chatbot (built as anchor questions that open sections) | Deterministic and auditable question order | Technical Requirements |
 | D-06 | One PWA for every role; no WhatsApp channel | No install, one codebase; parents use the same app from a link. Replaces the WhatsApp bot of early drafts | Technical Requirements, PRD |
 | D-07 | Gemini API with File Search Store for RAG | Managed retrieval; no vector database to run | Technical Requirements |
 | D-08 | Dual approval (teacher + school admin) before an IEP is active | Human control over AI output | Technical Requirements, Data Models |
-| D-09 | Regeneration limited to 3 per cycle, then 24-hour cooldown, stored per case | Avoid retry loops and cost spikes | Technical Requirements |
+| D-09 | Regeneration limited to 3 per cycle, then 24-hour cooldown, stored per case (*not built yet*) | Avoid retry loops and cost spikes | Technical Requirements |
 | D-10 | Six-week evaluation from the IEP's short-term goals, scored -2 to 2 by both informants | Measures progress on the plan itself. Replaces the "Week 12, three questions" PRD wording | Technical Requirements, Data Models |
 | D-11 | Shared schema with `school_id` scoping | Linear cost with schools | Technical Requirements |
 | D-12 | Instrument layer is swappable | Cultural validity is contested | Technical Requirements |
@@ -34,17 +34,18 @@ description: Architecture and product decisions for Mirai, open questions with i
 | Id | Question | Interim value | Owner |
 | --- | --- | --- | --- |
 | Q-01 | Discrepancy threshold and boundary | Absolute difference ≥ **1.00** on any domain, inclusive | Product + clinical advisor |
-| Q-02 | Age calculation rule | Completed years on the day the case opens; no re-routing on birthdays | Product |
+| Q-02 | Age calculation rule | **Implemented:** completed years on the day the case was created; no re-routing on birthdays (`services/screening_assessment.py`, `case_plan`) | Product |
 | Q-03 | One-sided or missing intake at window close | Score the completed side, discrepancy not applicable, Elevated still possible; if neither completes, close as incomplete | Product |
 | Q-04 | Consent withdrawal behaviour | Lock case, block new observations, keep scores and plans for audit marked "consent withdrawn", disable export; deletion by system admin after retention | Product + legal |
-| Q-05 | Parent second factor | Email one-time code (architecture diagram) vs TOTP for all users (data model) vs password only (security requirements) | Security |
+| Q-05 | Parent second factor | **Resolved by implementation:** TOTP for every role, parents included (`services/auth.py`). Update the architecture diagram, which still shows email OTP | Security |
 | Q-06 | Report visibility for school administrators | Parent only (data model) until resolved | Product + security |
-| Q-07 | Rounding rule for scores | Round half-up to two decimals after the final calculation | Backend |
-| Q-08 | Model | Gemini 3.5 Flash (architecture) vs Flash-Lite (security requirements) | AI |
+| Q-07 | Rounding rule for scores | **Implemented:** round half-up to two decimals at each step, after scaling each informant's score and again after combining (`services/screening_rules.py`) | Backend |
+| Q-08 | Model | Gemini 3.5 Flash (architecture) vs Flash-Lite (security requirements). The code takes the model from `GEMINI_MODEL`, so this is a deployment setting | AI |
 | Q-09 | Home activities source | Templates now (data model); RAG over the activity bank later (PRD) | AI + product |
 | Q-10 | Hosting provider and region | East Africa region requested; provider not chosen | Platform |
 | Q-11 | Consent, referral packet and longitudinal record tables | Not yet modelled | Backend |
 | Q-12 | Contractual no-retention with the AI provider | Required before production | Legal |
+| Q-13 | Supported age range | Product pages say 4 to 9; the API accepts 3 to 12 (`schemas/student.py`) | Product + backend |
 
 ## Conflicts between source documents
 
@@ -56,6 +57,7 @@ description: Architecture and product decisions for Mirai, open questions with i
 | C-04 | Backup retention | 30-day expiry (architecture) vs up to 35 days (security requirements) | 30 days satisfies both |
 | C-05 | School admin visibility | Some documents: macro metrics only. Technical Requirements and data model: may open the IEP draft and the three domain scores while approving | Admin sees aggregates, plus draft and scores during approval only, every view logged |
 | C-06 | Age gate for autism at 4 to 5 | Security requirements omit CAST for ages 4 to 5; Technical Requirements and QA include it | CAST at both age gates |
-| C-07 | Level names | UI says Low / Medium / Elevated; data model enum says LOW / MODERATE / HIGH | Keep the enum, map labels in the UI |
+| C-07 | Level names | UI says Low / Medium / Elevated; the API enum is `LOW` / `MODERATE` / `HIGH` (`models/enums.py`). The PWA's own client-side scoring uses `LOW` / `MEDIUM` / `ELEVATED` | Keep the API enum, map labels in the UI, and move the PWA to server-side scores ([Implementation Status](implementation-status.md#partial)) |
 | C-08 | Parallel vs sequential intake | PRD: parallel and asynchronous. Data Models updates: teacher first, then parent | Sequential (D-14); both still inside the 7-day window |
+| C-10 | ADHD instrument at age 5 | Technical Requirements and QA: ADHD RS-IV Preschool for ages 4 and 5. Code: SNAP-IV from age 5 (`SNAP_IV_FROM_AGE = 5` in `services/screening_rules.py`) | Decide, then align code or requirements |
 | C-09 | Product name | Early drafts call the product KEVIN or Daraja | Mirai everywhere |

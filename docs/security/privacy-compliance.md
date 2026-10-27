@@ -63,7 +63,7 @@ Mirai does **not** process data for advertising, teacher performance tracking, s
 | Double opt-in | School-level consent through the subscription, plus the individual parent's consent |
 | Purpose stated | Pre-referral observation only, not diagnosis, admissions or discipline |
 | Re-presentable | The parent can view what they agreed to, in plain language, at any time |
-| Withdrawal | Must halt processing and start the defined lifecycle event, not just toggle a flag <span class="mi-verify">confirm behaviour</span> |
+| Withdrawal | Must halt processing and start the defined lifecycle event, not just toggle a flag. Behaviour is an open decision ([Q-04](../reference/decision-log.md#open-questions)); not built |
 | Storage | Consent records are stored separately from observation data |
 
 ## Data sharing
@@ -72,7 +72,7 @@ Mirai has **no automatic data pipelines** to clinics, government databases or sc
 
 ## Data retention
 
-Personal data is kept only as long as the pre-referral purpose needs it (Regulation 19, Data Protection (General) Regulations, 2021). A **termly cleanup task** enforces these periods.
+Personal data is kept only as long as the pre-referral purpose needs it (Regulation 19, Data Protection (General) Regulations, 2021). A **termly cleanup task** is designed to enforce these periods; it is *planned* and not in the code yet.
 
 | Data | Retention | At expiry |
 | --- | --- | --- |
@@ -106,15 +106,15 @@ Personal data is kept only as long as the pre-referral purpose needs it (Regulat
 
 | Processor | Role | Note |
 | --- | --- | --- |
-| Google (Gemini API) | AI generation | No identity data; no retention beyond the request, to be confirmed contractually; cross-border transfer review needed |
-| Google (reCAPTCHA, Authenticator) | Bot protection, TOTP | No student data |
+| Google (Gemini API) | AI generation | No identity data (names are scrubbed and rejected, `services/ai.py`). Contractual no-retention is still open ([Q-12](../reference/decision-log.md#open-questions)); cross-border transfer review needed |
+| Authenticator apps | TOTP codes generated on the user's phone | No data leaves the phone. reCAPTCHA is planned, not used |
 | Resend / SMTP provider | Transactional email | Staff and parent emails, single-use tokens |
-| Supabase | Encrypted backups | Restricted, logged access |
+| Supabase | Encrypted backups (*planned*) | Restricted, logged access |
 | Hosting provider | Application and database | East Africa region requested |
 
 ## Breach response
 
-Because a leak of child-level observation data carries an elevated harm profile (stigma, discrimination), Mirai needs a breach threshold and notification path specific to this data, separate from a generic incident plan (AppSec REQ-8.2). Under the KDPA, the Data Commissioner must be notified within 72 hours of becoming aware of a qualifying breach, and affected data subjects informed where there is a real risk of harm. <span class="mi-verify">to write</span>
+Because a leak of child-level observation data carries an elevated harm profile (stigma, discrimination), Mirai needs a breach threshold and notification path specific to this data, separate from a generic incident plan (AppSec REQ-8.2). Under the KDPA, the Data Commissioner must be notified within 72 hours of becoming aware of a qualifying breach, and affected data subjects informed where there is a real risk of harm. The Mirai-specific procedure (who decides a breach has happened, who notifies, and the message templates) is not written yet; it is listed under outstanding actions below.
 
 ## Outstanding compliance actions
 

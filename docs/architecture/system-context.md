@@ -19,38 +19,34 @@ flowchart TB
     end
 
     subgraph Mirai["Mirai platform"]
-        PWA[Progressive Web App]
+        PWA[Teacher and parent PWA<br/>prism-frontend]
+        DASH[Admin dashboard<br/>prism-dashboard]
         API[Mirai API<br/>FastAPI]
         DB[(PostgreSQL)]
         PWA <-->|HTTPS + JWT| API
+        DASH <-->|HTTPS + JWT| API
         API <--> DB
     end
 
     subgraph Third["Third-party services"]
         GEM[Gemini API +<br/>File Search Store]
-        MAIL[Resend / SMTP]
-        GA[Google Authenticator<br/>TOTP]
-        RC[reCAPTCHA v3]
-        VAULT[HashiCorp Vault]
-        BK[Supabase<br/>encrypted backups]
+        MAIL[SMTP]
+        GA[Authenticator app<br/>TOTP]
     end
 
     PRO[Psychologist / psychiatrist<br/>KISE / EARC]
 
     T --> PWA
     P --> PWA
-    SA --> PWA
-    SYS --> PWA
+    SA --> DASH
+    SYS --> DASH
     API -->|de-identified prompt| GEM
     API -->|invites, codes| MAIL
     API -.->|verify code server-side| GA
-    PWA -->|token| RC
-    API -->|secrets at runtime| VAULT
-    DB -->|nightly, encrypted| BK
-    P -.->|parent exports packet<br/>outside Mirai| PRO
+    P -.->|parent shares the report<br/>outside Mirai| PRO
 ```
 
-The dashed line to professionals is deliberate: **Mirai never sends anything to a clinic**. The parent downloads the packet and decides who to give it to.
+The dashed line to professionals is deliberate: **Mirai never sends anything to a clinic**. The parent decides who to share their child's report with. reCAPTCHA, Vault and Supabase backups are *planned* and not shown ([Implementation Status](../reference/implementation-status.md#planned)).
 
 ## Actors
 
@@ -91,22 +87,19 @@ flowchart LR
 
 | Boundary | What is enforced when crossing it |
 | --- | --- |
-| Internet to edge | TLS only (plain HTTP dropped), rate limiting, bot checks, request size and schema validation |
-| Edge to application | JWT signature and expiry, revoked-token check, `token_version` check, role and school scope |
-| Application to data | ORM-parameterised queries only, school-scoped filters, encrypted identity fields |
-| Application to AI | Only reachable after an Elevated or discrepancy result; prompt contains domain, age band and de-identified summaries, never names, dates of birth or school names; output validated and kept as a draft |
+| Internet to API | HTTPS (TLS terminated by the host); rate limits on sign-in, MFA, refresh, reset and invitations; Pydantic validation. *Planned:* edge bot checks |
+| Request to handler | JWT signature, expiry, scope, revoked-token and `token_version` checks on routes that declare authentication; role and ownership checks in services. **45 routes declare none yet** ([Security gaps](../reference/implementation-status.md#security-gaps)) |
+| Application to data | ORM-parameterised queries only. *Planned:* encrypted identity fields |
+| Application to AI | Teacher-requested background job; the learner profile carries age, grade, home language and areas of concern, never names (`build_profile`); output containing a known name is rejected; saved as a draft |
 
 ## External services
 
 | Service | Purpose | Data shared | Requirement |
 | --- | --- | --- | --- |
-| **Gemini API + File Search Store** | Drafts IEPs, home activities and evaluation questions grounded in KICD guidance | Domain(s), age band, de-identified score and goal summaries | No child identity data; no retention beyond the request, confirmed contractually; cannot influence scores |
-| **Resend / SMTP** | Invitations, verification links, one-time codes, password resets | Recipient email, short-lived single-use tokens | TLS in transit, minimal scopes, restricted developer access |
-| **Google Authenticator** | TOTP second factor for staff | Shared secret (encrypted at rest as `mfa_secret_enc`) | Codes verified server-side only; each time-step usable once |
-| **Google reCAPTCHA v3** | Bot and brute-force protection | Browser risk signals | No student data; configured for privacy |
-| **HashiCorp Vault** | Secrets and encryption keys | Credentials, keys | Never in git; fetched at runtime |
-| **Supabase storage** | Encrypted database backups | Encrypted backup files | Restricted, logged access; 30-day expiry |
-| **Hosting provider** | Application and database hosting | Everything at rest | Isolated network, disk encryption i.e Heroku|
+| **Gemini API + File Search Store** | Drafts IEPs, home activities and evaluation questions grounded in the stored guidance | Age, grade, home language, areas of concern; approved goals for evaluation questions | No names; contractual no-retention still open ([Q-12](../reference/decision-log.md#open-questions)); cannot influence scores |
+| **SMTP** (`EMAIL_BACKEND=smtp`) | Invitations, parent email verification, password resets | Recipient email, short-lived single-use tokens | TLS in transit, minimal scopes, restricted developer access |
+| **Authenticator app** | TOTP second factor for every role | Shared secret (encrypted at rest as `mfa_secret_enc`) | Codes verified server-side only; each time-step usable once |
+| **Hosting provider** | Application and database hosting | Everything at rest | Backend deploys to Heroku according to the backend README; region and database host open ([Q-10](../reference/decision-log.md#open-questions)) |
 
 ## Main request flows
 
@@ -115,26 +108,26 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as Staff user
+    actor U as User (any role)
     participant PWA
     participant API as Mirai API
     participant DB as PostgreSQL
 
-    U->>PWA: email + password (+ reCAPTCHA token)
+    U->>PWA: email + password
     PWA->>API: POST /auth/login
     API->>DB: load user, check is_active, locked_until
     alt wrong password
         API->>DB: failed_login_attempts += 1 (lock 15 min at 5)
         API-->>PWA: 401 generic error
     else first sign-in
-        API-->>PWA: must_change_password, mfa setup required
+        API-->>PWA: stage password_change_required or mfa_enrollment_required + step token
         U->>PWA: new password, scan QR, enter code
     else returning user
-        API-->>PWA: MFA challenge
+        API-->>PWA: stage mfa_required + step token
         U->>PWA: 6-digit TOTP code
         PWA->>API: POST /auth/mfa/verify
-        API->>DB: check code, last_totp_step, write audit LOGIN
-        API-->>PWA: access token + refresh cookie (HttpOnly, Secure, SameSite=Strict)
+        API->>DB: check code and last_totp_step
+        API-->>PWA: access token + refresh token (JSON body)
     end
 ```
 
@@ -150,25 +143,20 @@ sequenceDiagram
     participant DB as PostgreSQL
 
     T->>API: open case for student
-    API->>DB: case INITIATED (age gate picks instruments)
-    loop one question at a time
-        T->>API: answer (queued offline if needed)
-    end
+    API->>DB: case INITIATED
+    T->>API: anchor answers, then opened sections
     API->>DB: teacher assessment completed_at, case TEACHER_SCREENING_COMPLETED
-    API->>DB: notification PARENT_TURN
-    loop one question at a time
-        P->>API: answer
-    end
-    API->>DB: case PARENT_SCREENING_COMPLETED
-    API->>SC: locked responses
-    SC-->>API: domain scores, levels, discrepancy
-    API->>DB: domain_score rows, recommendation, report
-    alt highest domain score at least 2.00 or discrepancy
-        API->>DB: IEP v1 DRAFT
+    P->>API: answers for the opened sections
+    API->>DB: parent assessment completed_at
+    API->>SC: POST /domain-scores/case/{id}/calculate
+    SC-->>API: domain scores and bands
+    API->>DB: scores on case, report
+    alt highest domain score at least 2.00
+        API->>DB: case PARENT_SCREENING_COMPLETED (support plan recommended)
     else
         API->>DB: case NO_CONCERN_IDENTIFIED
     end
-    API->>DB: notify teacher and parent
+    Note over T: The teacher then requests an IEP draft (POST /ai/cases/{id}/iep)
 ```
 
 ### IEP approval
@@ -182,11 +170,12 @@ sequenceDiagram
     participant API as Mirai API
     participant AI as Gemini File Search
 
-    API->>AI: de-identified prompt (domains, age band, summaries)
-    AI-->>API: draft + chunk references
+    T->>API: POST /ai/cases/{id}/iep (202, background job)
+    API->>AI: learner profile without names + File Search
+    AI-->>API: draft + retrieved document titles
     API-->>T: IEP DRAFT (editable)
     T->>API: edit, then submit
-    Note over API: IEP PENDING_APPROVAL, case IEP_PENDING_APPROVAL
+    Note over API: IEP PENDING_APPROVAL
     T->>API: approve
     SA->>API: approve (or reject with reason)
     API->>API: approved_at = now, evaluation_unlock_date = +6 weeks
@@ -194,6 +183,10 @@ sequenceDiagram
 ```
 
 ### Referral export
+
+!!! warning "Planned"
+
+    There is no export endpoint yet. This is the designed flow.
 
 ```mermaid
 sequenceDiagram
@@ -212,7 +205,9 @@ sequenceDiagram
 
 ## Notifications
 
-Workflow messages are **in-app notifications** stored in the `notification` table. Email is used only for account-level messages (invitations, verification, codes, resets).
+Workflow messages are designed as **in-app notifications** stored in the `notification` table, read through `/notifications`. Email is used only for account messages: invitations and password resets (`core/mailer.py`, `services/student.py`).
+
+*Planned:* the API does not create the notifications below automatically yet; the table and endpoints exist.
 
 | Trigger | Recipient | Kind |
 | --- | --- | --- |

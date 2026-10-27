@@ -5,7 +5,7 @@ description: Mirai's layered architecture, its main components, the decisions be
 
 # Architecture
 
-<p class="mi-lead">Mirai is a layered web system: one Progressive Web App for every role, a single FastAPI service that owns all business rules, a school-scoped PostgreSQL database and a strictly fenced-off AI service.</p>
+<p class="mi-lead">Mirai is a layered web system: a Progressive Web App for teachers and parents, a web dashboard for school and system administrators, a single FastAPI service that owns all business rules, a school-scoped PostgreSQL database and a strictly fenced-off AI service.</p>
 
 ## Secure system architecture
 
@@ -29,38 +29,38 @@ description: Mirai's layered architecture, its main components, the decisions be
 <a class="mi-legend__item" href="#layer-5"><span class="mi-dot mi-dot--red"></span>5 External services</a>
 </nav>
 
-The architecture is read left to right as five layers. Every request crosses all of them in order; nothing reaches the data layer except through the Mirai API. Use the chips above to jump to a layer.
+The diagram shows the target design. Some parts of it (the WAF, reCAPTCHA, email OTP, Vault and Supabase backups) are not built yet; the cards below mark them *Planned*, and [Implementation Status](../reference/implementation-status.md) lists them. The architecture is read left to right as five layers. Every request crosses all of them in order; nothing reaches the data layer except through the Mirai API. Use the chips above to jump to a layer.
 
 <div class="mi-grid" markdown>
 
 <div class="mi-card mi-card--navy" id="layer-1" markdown>
 :material-cellphone-link:
 ### 1. Users and devices
-Parents, teachers and school administrators use the same mobile-first PWA over **HTTPS/TLS**. Parents open assessments, read their child's report and plan, and see professional contacts. Teachers fill in screenings, generate and approve IEPs, answer evaluations, onboard parents and create student profiles. School administrators approve IEPs and onboard or offboard teachers.
+Parents and teachers use the mobile-first PWA (`prism-frontend`); school and system administrators use the web dashboard (`prism-dashboard`). Both talk to the API over **HTTPS/TLS**. Parents open assessments, read their child's report and plan, and see professional contacts. Teachers fill in screenings, generate and approve IEPs, answer evaluations, onboard parents and create student profiles. School administrators approve IEPs and onboard or offboard teachers.
 </div>
 
 <div class="mi-card mi-card--red" id="layer-2" markdown>
 :material-wall-fire:
 ### 2. Perimeter security
-**DNS and DDoS protection** (domain whitelisting, rate limiting, dropping non-HTTPS traffic), a **WAF** (input and output validation, Pydantic schemas, SQLAlchemy ORM against SQL injection, HTML stripping against XSS, reCAPTCHA v3) and an **API gateway** (JWT validation on every endpoint, token blacklisting, strict rate limits, secure headers).
+*Planned:* **DNS and DDoS protection** and a **WAF** in front of the API, with reCAPTCHA v3 on sign-in. *In the API today:* Pydantic validation, SQLAlchemy ORM (no string-built SQL), JWT validation on routes that declare it, token revocation, rate limits on sign-in and reset, and secure headers. See [Implementation Status](../reference/implementation-status.md).
 </div>
 
 <div class="mi-card mi-card--orange" id="layer-3" markdown>
 :material-api:
 ### 3. Application layer (Mirai API)
-Authentication and email OTP, role-based authorisation, platform governance middleware, screening intake modules, the **core evaluation and scoring engine** and the **AI engine**, each a separate module with its own boundary.
+Authentication with TOTP, role-based authorisation, platform governance middleware, screening intake modules, the **core evaluation and scoring engine** and the **AI engine**, each a separate module with its own boundary.
 </div>
 
 <div class="mi-card mi-card--navy" id="layer-4" markdown>
 :material-database-lock-outline:
 ### 4. Data layer
-Encrypted PostgreSQL with an isolated relational schema and random UUID keys, application-layer field encryption with key versioning, an append-only audit table, encrypted backups on Supabase with 30-day expiry, and HashiCorp Vault for secrets.
+PostgreSQL with random UUID keys and an audit table that the application cannot update or delete. *Planned:* application-layer field encryption with key versioning, encrypted backups on Supabase with 30-day expiry, and HashiCorp Vault for secrets.
 </div>
 
 <div class="mi-card mi-card--red" id="layer-5" markdown>
 :material-cloud-outline:
 ### 5. External services
-**Gemini API with File Search** (curriculum store only, no identity data, draft-state constraint), **staff MFA** (Google Authenticator, email OTP) and **communication services** (Resend / SMTP with single-use tokens).
+**Gemini API with File Search** (reference documents only, no names sent, drafts only), **authenticator apps** for TOTP, and **SMTP** email with single-use links.
 </div>
 
 </div>
@@ -90,11 +90,11 @@ The second diagram shows the same system as functional modules and the messages 
 
 !!! note "Progressive Web App (client)"
 
-    - **Technology:** Next.js PWA, mobile-first with desktop layouts for the same screens
-    - **Serves:** parent, teacher, school administrator and system administrator interfaces with role-aware routing
-    - **Offline:** a service-worker queue stores answers locally and replays them when the connection returns
+    - **Technology:** two Next.js apps. `prism-frontend` is the mobile-first PWA for teachers and parents; `prism-dashboard` is the desktop dashboard for school and system administrators
+    - **Serves:** role-aware routing in each app (`RequireRole`, `AuthGuard`)
+    - **Offline:** the service worker serves cached pages and an offline page. *Planned:* a queue that stores answers and replays them
     - **Talks to:** the Mirai API only, over HTTPS
-    - **Never does:** compute scores, decide alert levels or call the AI service
+    - **Never does:** call the AI service. *Rule:* it should not compute scores or levels either; today the screening screens still do (see [Implementation Status](../reference/implementation-status.md#partial))
 
 !!! note "Mirai API (FastAPI)"
 
@@ -105,13 +105,13 @@ The second diagram shows the same system as functional modules and the messages 
 
 !!! note "Scoring engine"
 
-    - **Lives inside:** the Mirai API as a pure, dependency-free package
-    - **Does:** age-gate routing, per-domain normalised scores (0.00 to 3.00), Low / Medium / Elevated classification, discrepancy check
-    - **Rule:** must not import any AI client; enforced by a lint test. See [Scoring Engine](../backend/scoring-engine.md)
+    - **Lives inside:** the Mirai API, in `services/screening_rules.py` (pure functions) and `services/domain_score.py`
+    - **Does:** age-gate routing, per-domain scores scaled 0.00 to 3.00, `LOW` / `MODERATE` / `HIGH` bands from the interpretation table, teacher and parent scores averaged
+    - **Rule:** must not import any AI client. Not yet enforced by a test. See [Scoring Engine](../backend/scoring-engine.md)
 
 !!! note "AI service"
 
-    - **Technology:** Gemini 3.5 Flash through the Gemini API, with a managed File Search Store
+    - **Technology:** Gemini through the Gemini API (model set by `GEMINI_MODEL`; production value open, [Q-08](../reference/decision-log.md#open-questions)), with a managed File Search Store
     - **Store holds:** KICD CBC inclusive-education guidance and the specialist-curated home-activity bank, never child data
     - **Generates:** IEP drafts, home-activity suggestions and six-week evaluation questions
     - **Reachable only when:** a persisted score shows Elevated or a qualifying discrepancy. See [AI](../ai/index.md)
@@ -119,26 +119,24 @@ The second diagram shows the same system as functional modules and the messages 
 !!! note "PostgreSQL database"
 
     - **Schema:** shared, multi-tenant; `school_id` on users, students and cases; everything else reached through the student
-    - **Protects:** child name, date of birth, parent phone and email with application-layer encryption (`BYTEA` + `key_version`)
+    - **Protects:** TOTP secrets are encrypted in the application. *Planned:* encryption of child name, date of birth, parent phone and email (`BYTEA` + `key_version`)
     - **Constraints:** one unfinished case per student (partial unique index), one assessment per responder role per case, append-only audit log. See [Data Model](data-model.md)
 
 !!! note "Supporting services"
 
-    - **Resend / SMTP:** invitations, account verification and single-use codes
-    - **Google Authenticator:** TOTP second factor for staff, verified server-side
-    - **Google reCAPTCHA v3:** bot protection on sign-in and sensitive actions
-    - **HashiCorp Vault:** runtime secrets and encryption keys
-    - **Supabase storage:** encrypted backups with restricted access
+    - **SMTP:** invitations, parent email verification and password resets
+    - **Authenticator app (TOTP):** second factor for every role, verified server-side
+    - *Planned:* **Google reCAPTCHA v3** on sign-in, **HashiCorp Vault** for secrets, **Supabase storage** for encrypted backups
 
 ## Key architectural decisions
 
 | Decision | Choice | Why |
 | --- | --- | --- |
-| Client delivery | One PWA for every role | No app store install, near-zero storage on entry-level phones, one codebase |
+| Client delivery | One PWA for teachers and parents; a separate web dashboard for administrators | No app store install, near-zero storage on entry-level phones; administrators work at a desk |
 | Scoring | Embedded deterministic rules engine in the API | Same input always gives the same, explainable output; zero arithmetic hallucination |
 | Intake | Finite state machine per instrument | Question order is fixed and auditable; no model interprets free text |
 | Instruments | Interface-bound, swappable module with versioned question banks | Cultural validity is contested, so a Kenya-validated tool must drop in without a rewrite |
-| Offline | Service-worker queue with idempotency keys | Teachers switch data off; the 7-day window tolerates asynchronous submission |
+| Offline | Service-worker queue with idempotency keys (*planned*; today cached pages and an offline page) | Teachers switch data off; the 7-day window tolerates asynchronous submission |
 | Tenancy | Shared schema, school-scoped queries | Cost must scale linearly with schools on a fixed, low subscription price |
 | Generation | Gemini File Search (managed RAG) | No self-hosted vector database to run; chunking, embedding and retrieval are managed |
 | Human control | Dual approval (teacher + school admin) before an IEP is active | AI output is a draft until people who know the child sign off |

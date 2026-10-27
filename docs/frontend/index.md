@@ -21,11 +21,11 @@ description: The Mirai Progressive Web App, its role-based navigation, offline b
 | Concern | Choice |
 | --- | --- |
 | Framework | Next.js (React, TypeScript) |
-| Installability | Web app manifest + service worker (Workbox) |
-| Offline queue | IndexedDB + background sync, with idempotency keys |
+| Installability | Web app manifest (`app/manifest.ts`) and a hand-written service worker (`public/sw.js`) registered in production |
+| Offline | Cached pages and static files, `public/offline.html` when nothing is cached. *Planned:* IndexedDB answer queue with idempotency keys |
 | Styling | Design tokens from the [Style Guide](style-guide.md); Quicksand typeface |
-| Data fetching | Typed API client generated from the backend OpenAPI |
-| Testing | Unit tests for components; Playwright or Cypress for journeys |
+| Data fetching | Hand-written typed clients in `lib/*.ts` over one `request()` helper (`lib/api.ts`) |
+| Testing | Jest + React Testing Library (`tests/`). No end-to-end suite yet |
 
 ## Navigation by role
 
@@ -78,6 +78,10 @@ description: The Mirai Progressive Web App, its role-based navigation, offline b
     | Professionals | Add, edit and deactivate directory entries |
 
 ## Offline behaviour
+
+!!! warning "Planned"
+
+    The queue below is the design. Today the service worker (`public/sw.js`) caches pages and static files and shows `offline.html`; answers are not queued while offline. See [Implementation Status](../reference/implementation-status.md#planned).
 
 ```mermaid
 sequenceDiagram
@@ -1052,9 +1056,8 @@ export const SCHOOL_ADMIN_NAV: NavItem[] = [
 
 | Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_API_URL` | Base URL of the Mirai API, for example `http://localhost:8000/api/v1` |
-| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | reCAPTCHA v3 site key |
-| `NEXT_PUBLIC_AFFILIATION_LABEL` | Optional institutional or regulatory affiliation marker shown on sign-in and parent screens |
+| `NEXT_PUBLIC_API_URL` | Base URL of the Mirai API, for example `http://localhost:8000` (no `/api/v1` suffix) |
+| `NEXT_PUBLIC_SCREENING_ENABLED` | `true` shows the screening screens; otherwise `ScreeningUnavailable` is shown |
 
 ## Content rules
 
