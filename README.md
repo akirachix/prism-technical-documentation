@@ -24,8 +24,11 @@ Published site: <https://akirachix.github.io/prism-technical-documentation/>
 | `docs/developer-guide/` | Workflow, local setup, testing and QA |
 | `docs/reference/` | Glossary, decision log, team, source documents |
 | `docs/assets/` | Diagrams, screens, brand files |
+| `evidence/` | The backend, frontend and dashboard repositories as git submodules, so claims can be checked (not published) |
+| `scripts/generate_api_reference.py` | Regenerates `docs/backend/api-endpoints.md` from the backend routers |
 | `docs/stylesheets/extra.css` | Mirai theme for Material |
 | `docs/javascripts/zoom.js` | Click-to-zoom for diagrams and screenshots |
+
 
 ## Prerequisites
 

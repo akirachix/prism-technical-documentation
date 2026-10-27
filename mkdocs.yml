@@ -15,8 +15,8 @@ copyright: >-
 theme:
   name: material
   language: en
-  logo: assets/brand/mirai-mark-light.svg
-  favicon: assets/brand/mirai-mark.svg
+  logo: assets/brand/mirai-mark-on-dark.svg
+  favicon: assets/brand/mirai-mark-on-light.svg
   font:
     text: Quicksand
     code: JetBrains Mono
@@ -44,15 +44,13 @@ theme:
     - content.tabs.link
     - content.tooltips
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
+    - scheme: default
       primary: custom
       accent: custom
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
+    - scheme: slate
       primary: custom
       accent: custom
       toggle:
@@ -94,6 +92,8 @@ markdown_extensions:
 
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/screens-extra.css
+  - stylesheets/architecture-figures.css
 
 extra_javascript:
   - javascripts/zoom.js
@@ -122,6 +122,7 @@ nav:
       - backend/index.md
       - Screening and Scoring Engine: backend/scoring-engine.md
       - API Reference: backend/api.md
+      - Endpoint List: backend/api-endpoints.md
   - AI:
       - ai/index.md
       - IEP and Evaluation Generation: ai/iep-generation.md
@@ -131,6 +132,7 @@ nav:
       - Style Guide: frontend/style-guide.md
   - Platform:
       - platform/index.md
+      - Deployment: platform/deployment.md
   - Security:
       - security/index.md
       - Access Control: security/access-control.md
@@ -142,6 +144,9 @@ nav:
       - Testing and QA: developer-guide/testing.md
   - Reference:
       - reference/index.md
+      - Source Code: reference/source-code.md
+      - Implementation Status: reference/implementation-status.md
+      - Traceability: reference/traceability.md
       - Glossary: reference/glossary.md
       - Decision Log: reference/decision-log.md
       - Team: reference/team.md

@@ -8,7 +8,7 @@ description: Definitions of the technical, legal and Mirai-specific terms used a
 <p class="mi-lead">Plain-language definitions, in alphabetical order.</p>
 
 ADHD Rating Scale IV, Preschool Version
-:   Observational questionnaire used in Mirai for ages 4 to 5 to record attention and activity behaviours. A screening tool, not a diagnosis.
+:   Observational questionnaire used in Mirai for children under 5 to record attention and activity behaviours (age 5 uses SNAP-IV; see [C-10](decision-log.md#conflicts-between-source-documents)). A screening tool, not a diagnosis.
 
 Age gate
 :   The rule that selects the screening instruments from the child's age when a case opens: 4 to 5 or 6 to 9.
@@ -23,10 +23,10 @@ Append-only audit log
 :   A log that only accepts new rows. Existing rows cannot be changed or deleted.
 
 Application-layer encryption
-:   Encrypting specific fields (child name, date of birth, parent phone, parent email) inside the application before they reach the database.
+:   Encrypting specific fields inside the application before they reach the database. Today only TOTP secrets; child and parent identity fields are planned.
 
-Argon2id / bcrypt
-:   Password-hashing algorithms. The real password is never stored.
+Argon2
+:   The password-hashing algorithm Mirai uses. The real password is never stored.
 
 CAST
 :   Childhood Autism Spectrum Test. The autism-domain instrument for all ages in Mirai.
@@ -47,7 +47,7 @@ Consent record
 :   Proof that a parent agreed to their child's data being processed for pre-referral observation. Required before a child profile exists.
 
 Discrepancy
-:   A large difference between the teacher's and the parent's score in a domain. At or above the threshold it is treated like an Elevated result.
+:   A large difference between the teacher's and the parent's score in a domain. The decision is to treat it like an Elevated result; not built yet.
 
 Domain
 :   One of three independent areas: Autism, ADHD, Dyslexia.
@@ -64,8 +64,8 @@ Elevated
 File Search Store
 :   Gemini's managed retrieval store. In Mirai it holds KICD guidance and the activity bank, never child data.
 
-Finite state machine (FSM)
-:   The intake engine: each question is a state and each valid answer moves to the next, so the order is fixed and auditable.
+Anchor questions
+:   The teacher's short opening questions. A domain's full section opens only when its anchor answer is 2 or more.
 
 Gemini
 :   Google's large language model family, used through the Gemini API to draft IEPs and evaluation questions.
@@ -128,7 +128,7 @@ RBAC
 :   Role-Based Access Control. Each user can do only what their role allows.
 
 Referral packet
-:   The de-identified, encrypted document a parent may export and hand to a professional. Mirai never sends it on its own.
+:   *Planned:* the de-identified, encrypted document a parent may export and hand to a professional. Mirai never sends it on its own.
 
 Report
 :   The per-case summary for the parent: disclaimer, domain bands and meaning, recommendation, active IEP and professionals.

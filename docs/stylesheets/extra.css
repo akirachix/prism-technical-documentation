@@ -1,13 +1,3 @@
-/* ==========================================================================
-   Mirai Technical Documentation: theme
-   Brand source: Mirai style guide (Team Prism)
-     Primary   Navy   #011F55   Red    #CF2135
-     Secondary Orange #FF8945   Black  #000000
-     Typeface  Quicksand
-   Product surfaces use a warm cream canvas (see the hi-fi screens), so the
-   light scheme does the same.
-   ========================================================================== */
-
 :root {
   --mi-navy: #011f55;
   --mi-navy-700: #0a2c6b;
@@ -26,8 +16,6 @@
   --mi-radius: 14px;
   --mi-shadow: 0 6px 24px rgba(1, 31, 85, 0.08);
 }
-
-/* ---------- Material palette mapping ---------- */
 
 [data-md-color-scheme="default"] {
   --md-primary-fg-color: var(--mi-navy);
@@ -65,7 +53,6 @@
   --md-footer-bg-color--dark: #050e24;
 }
 
-/* ---------- Layout and chrome ---------- */
 
 .md-grid {
   max-width: 1360px;
@@ -792,8 +779,11 @@ a.mi-card,
 }
 
 .md-typeset .mi-phones img {
-  border-radius: 18px;
-  border: 6px solid #1b2437;
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  border: 1px solid var(--mi-line);
   box-shadow: var(--mi-shadow);
   cursor: zoom-in;
 }
@@ -925,65 +915,8 @@ a.mi-card,
 .mi-btn--orange-soft { background: var(--mi-orange-soft); color: #c4561a; }
 .mi-btn--orange-ghost { border-color: var(--mi-orange); color: #c4561a; background: #fff; }
 
-/* ---------- Lightbox (javascripts/zoom.js) ---------- */
 
-.mi-lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-  padding: 2rem;
-  background: rgba(0, 12, 36, 0.9);
-  animation: miLbIn 0.18s ease;
-}
-
-@keyframes miLbIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.mi-lightbox img {
-  max-width: 94vw;
-  max-height: 86vh;
-  object-fit: contain;
-  border-radius: 10px;
-  background: #ffffff;
-}
-
-.mi-lightbox__caption {
-  color: #e4ebf8;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.mi-lightbox__close {
-  position: absolute;
-  top: 1rem;
-  right: 1.2rem;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: none;
-  background: var(--mi-red);
-  color: #ffffff;
-  font-size: 1.6rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.mi-lightbox__close:hover,
-.mi-lightbox__close:focus-visible {
-  background: var(--mi-orange);
-  outline: none;
-}
-
-/* ---------- Mermaid ---------- */
-
+/* ---------- Cards, showcase and hero images ---------- */
 .md-typeset .mermaid {
   text-align: center;
   background: var(--mi-surface);
@@ -998,13 +931,11 @@ a.mi-card,
   height: auto;
 }
 
-/* ---------- Footer ---------- */
 
 .md-footer-meta {
   background: var(--mi-navy-900);
 }
 
-/* ---------- Responsive ---------- */
 
 @media screen and (max-width: 1100px) {
   .mi-steps { grid-template-columns: repeat(3, 1fr); row-gap: 1.4rem; }
@@ -1025,7 +956,6 @@ a.mi-card,
   .mi-type div { grid-template-columns: 1fr; gap: 0.2rem; }
 }
 
-/* ---------- Refinements ---------- */
 
 .md-typeset .mi-card .twemoji svg,
 .md-typeset .mi-banner .twemoji svg {
@@ -1070,3 +1000,168 @@ a.mi-card,
 @media screen and (max-width: 600px) {
   .mi-grid--3 { grid-template-columns: 1fr; }
 }
+
+/* ==========================================================
+   Images: framing, zoom affordance and viewer (zoom.js)
+   ========================================================== */
+
+.md-typeset img { image-rendering: auto; }
+
+/* Stand-alone diagrams and screenshots */
+.md-typeset img.zoomable {
+  display: block;
+  margin: 1.2rem auto;
+  padding: 10px;
+  background: #ffffff;               /* diagrams stay on white in dark mode */
+  border: 1px solid var(--mi-line);
+  border-radius: 12px;
+  box-shadow: var(--mi-shadow);
+  cursor: zoom-in;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.md-typeset img.zoomable:hover { transform: none; box-shadow: 0 12px 30px rgba(1, 31, 85, 0.16); }
+
+/* Wrapper added by zoom.js: shows an "Enlarge" badge on hover and focus */
+.mi-zoom {
+  position: relative;
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  width: fit-content;
+}
+.mi-phones .mi-zoom, .mi-desktops .mi-zoom, .mi-figure__scroll .mi-zoom { width: auto; }
+.mi-zoom__badge {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(1, 31, 85, 0.88);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.mi-zoom__badge svg { width: 0.9em; height: 0.9em; fill: currentColor; }
+.mi-zoom:hover .mi-zoom__badge,
+.mi-zoom:focus-within .mi-zoom__badge { opacity: 1; transform: none; }
+@media (hover: none) { .mi-zoom__badge { opacity: 1; transform: none; } }
+.md-typeset img[data-mi-zoom]:focus-visible { outline: 3px solid var(--mi-orange); outline-offset: 3px; }
+
+/* Gallery captions */
+.md-typeset .mi-phones figcaption,
+.md-typeset .mi-desktops figcaption { text-align: center; line-height: 1.3; }
+.md-typeset .mi-desktops img { display: block; width: 100%; height: auto; border-radius: 10px; }
+
+/* Viewer */
+html.mi-lb-open, html.mi-lb-open body { overflow: hidden; }
+.mi-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: rgba(0, 10, 32, 0.94);
+  color: #e8eefb;
+  animation: miLbIn 0.16s ease;
+}
+@keyframes miLbIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .mi-lightbox { animation: none; } }
+.mi-lightbox__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.75rem;
+}
+.mi-lightbox__count { margin-right: auto; opacity: 0.85; font-weight: 600; }
+.mi-lightbox__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: 600 0.72rem/1 inherit;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+.mi-lightbox__btn:hover { background: rgba(255, 255, 255, 0.18); }
+.mi-lightbox__btn:focus-visible { outline: 3px solid var(--mi-orange); outline-offset: 2px; }
+.mi-lightbox__btn--close { background: var(--mi-red); border-color: var(--mi-red); font-size: 1.2rem; }
+.mi-lightbox__stage {
+  position: relative;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3.5rem;
+  min-height: 0;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y pinch-zoom;
+}
+.mi-lightbox__stage img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  margin: auto;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  cursor: zoom-in;
+  image-rendering: auto;
+}
+.mi-lightbox.is-actual .mi-lightbox__stage { align-items: flex-start; justify-content: flex-start; }
+.mi-lightbox.is-actual .mi-lightbox__stage img { max-width: none; max-height: none; cursor: grab; }
+.mi-lightbox.is-dragging .mi-lightbox__stage img { cursor: grabbing; }
+.mi-lightbox__nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  font-size: 1.3rem;
+}
+.mi-lightbox__nav--prev { left: 0.6rem; }
+.mi-lightbox__nav--next { right: 0.6rem; }
+.mi-lightbox__caption {
+  padding: 0.6rem 1rem 0.9rem;
+  text-align: center;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+.mi-lightbox__caption small { display: block; font-weight: 400; opacity: 0.75; margin-top: 0.15rem; }
+.mi-lightbox__spinner {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: miSpin 0.8s linear infinite;
+}
+@keyframes miSpin { to { transform: rotate(360deg); } }
+@media screen and (max-width: 44.9375em) {
+  .mi-lightbox__stage { padding: 0 0.4rem; }
+  .mi-lightbox__nav { top: auto; bottom: 0.7rem; transform: none; }
+  .mi-lightbox__caption { padding-bottom: 3.6rem; }
+  .mi-lightbox__btn--zoom span { display: none; }
+}
+
+.mi-zoom--block { margin: 1.2rem auto; }
+.md-typeset .mi-zoom--block > img.zoomable { margin: 0; }

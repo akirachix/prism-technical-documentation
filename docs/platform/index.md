@@ -7,6 +7,10 @@ description: Mirai environments, hosting, CI/CD, secrets, backups, monitoring an
 
 <p class="mi-lead">How Mirai is hosted, deployed, configured and kept recoverable, within a cost envelope set by a low annual per-school subscription.</p>
 
+!!! warning "Target platform"
+
+    This page describes the platform Mirai is designed to run on. Hosting is not chosen yet ([Q-10](../reference/decision-log.md#open-questions)). What exists today, with the exact commands and settings, is on [Deployment](deployment.md); items marked *Planned* are listed on [Implementation Status](../reference/implementation-status.md#planned).
+
 ## Environments
 
 | Environment | Purpose | Data | Notes |
@@ -32,7 +36,7 @@ flowchart LR
     end
     PG -->|encrypted backups| SB[(Supabase storage)]
     API -->|HTTPS| GEM[Gemini API]
-    API -->|HTTPS| MAIL[Resend / SMTP]
+    API -->|HTTPS| MAIL[SMTP]
 ```
 
 | Component | Hosting |
@@ -40,11 +44,13 @@ flowchart LR
 | PWA | Static and server-rendered Next.js behind the edge |
 | API and jobs | Containerised FastAPI in an isolated private network (VPC) |
 | Database | Managed PostgreSQL with encryption at rest |
-| Backups | Supabase storage, encrypted, restricted access |
-| Secrets | HashiCorp Vault |
-| Provider and region | To be confirmed. The security requirements ask for hosting within the East Africa geographic boundary, and any cross-border processing (including AI endpoints) must be reviewed against the Kenya Data Protection Act transfer conditions. <span class="mi-verify">confirm</span> |
+| Backups | *Planned:* Supabase storage, encrypted, restricted access |
+| Secrets | *Planned:* HashiCorp Vault. Today: environment variables |
+| Provider and region | Not chosen yet ([Q-10](../reference/decision-log.md#open-questions)). The security requirements ask for hosting within the East Africa geographic boundary, and any cross-border processing (including AI endpoints) must be reviewed against the Kenya Data Protection Act transfer conditions.
 
 ## CI/CD
+
+*Today:* the backend README describes three GitHub Actions workflows: `pr-checks.yml` (PR requirements, lint and format), `ci.yml` (pytest and coverage) and `deploy.yml` (on push to `main`: re-run CI, deploy to Heroku, check `/health`). The workflow files were not in the copy reviewed for these docs. The pipeline below, with security scans and staging, is the *planned* target.
 
 ```mermaid
 flowchart LR
@@ -70,31 +76,35 @@ flowchart LR
 
 The docs live in this repository and are built by `.github/workflows/docs.yml`:
 
-- On every push to `main` or `feature/**` and on pull requests: `mkdocs build --strict`.
+- On every push to `main` and on pull requests: `mkdocs build --strict`.
 - On `main`: the built site is published to GitHub Pages at `https://akirachix.github.io/prism-technical-documentation/`.
 
 One-time setup: in the repository's **Settings → Pages**, set **Source** to **GitHub Actions**.
 
 ## Secrets and configuration
 
-- All secrets (database credentials, JWT signing key, field-encryption keys, Gemini, Resend, reCAPTCHA) live in **HashiCorp Vault** and are injected at container start.
-- Nothing secret is committed. A `.env.example` lists variable names only.
-- Field-encryption keys are versioned (`key_version`) so they can be rotated without re-encrypting everything at once.
-- Production disables Swagger / ReDoc, debug mode and verbose logging, and closes unused ports.
+- *Today:* secrets are environment variables (see [Deployment](deployment.md#api-settings-for-production)). *Planned:* all secrets live in **HashiCorp Vault** and are injected at container start.
+- Nothing secret is committed.
+- *Planned:* field-encryption keys are versioned (`key_version`) so they can be rotated without re-encrypting everything at once.
+- *Planned:* production disables Swagger / ReDoc. Today `/docs` and `/redoc` are served in every environment (`main.py`).
 
 ## Backups and recovery
+
+*Planned.* No backup job exists yet.
 
 | Rule | Value |
 | --- | --- |
 | Frequency | Automated daily database backups |
 | Encryption | Encrypted at rest |
 | Location | Supabase storage, separate from the primary database |
-| Retention | Rolling, expiring after 30 days (requirements allow up to 35) <span class="mi-verify">confirm</span> |
+| Retention | Rolling, expiring after 30 days (requirements allow up to 35) |
 | Access | Named platform administrators only; every access logged |
 | Testing | Quarterly restore drill into an isolated environment |
 | Alignment | Backup expiry must not keep data longer than the [retention schedule](../security/privacy-compliance.md#data-retention) allows |
 
 ## Monitoring and logging
+
+*Planned.* Today the API logs to standard output (`logging.basicConfig` in `main.py`) and exposes `GET /health`.
 
 | Signal | What is watched |
 | --- | --- |

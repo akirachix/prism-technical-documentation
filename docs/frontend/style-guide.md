@@ -12,15 +12,18 @@ description: The Mirai brand and UI style guide - logo, colour, typography, icon
 <div class="mi-grid mi-grid--2" markdown>
 
 <div class="mi-card" markdown>
-![Mirai horizontal logo](../assets/brand/mirai-logo.svg){ .mi-w-md }
+![Mirai horizontal logo](../assets/brand/mirai-logo-horizontal.svg){ width="420" }
 
 **Horizontal lock-up.** Use in headers, documents and the web app sidebar.
 </div>
 
 <div class="mi-card" markdown>
 <div style="display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap" markdown>
-![Mirai mark on light](../assets/brand/mirai-mark.svg){ width="96" }
-<span style="background:#011F55;border-radius:14px;padding:12px;display:inline-block" markdown>![Mirai mark on navy](../assets/brand/mirai-mark-light.svg){ width="72" }</span>
+![Mirai mark on light](../assets/brand/mirai-mark-on-light.svg){ width="120" }
+
+
+
+<span style="background:#011F55;border-radius:14px;padding:12px;display:inline-block" markdown>![Mirai mark on navy](../assets/brand/mirai-mark-on-dark.svg){ width="96" }</span>
 </div>
 
 **The mark.** Two figures standing side by side, drawn as one continuous line that forms the *m*. Use alone for app icons and favicons.
@@ -49,7 +52,7 @@ The SVG files in `docs/assets/brand/` are vector redraws of the style-guide logo
 
 ### UI support colours
 
-These tints appear across the hi-fi screens (cards, chips, banners). Values below are the tokens used on this site to match them. <span class="mi-verify">confirm with design</span>
+These tints appear across the hi-fi screens (cards, chips, banners). Values below are the tokens this site uses to match them; the design file remains the source of truth.
 
 <div class="mi-swatches" markdown>
 <div class="mi-swatch"><div class="mi-swatch__chip" style="background:#FDF6EE;color:#011F55">Cream</div><div class="mi-swatch__meta"><strong>#FDF6EE</strong>App canvas behind cards</div></div>
@@ -90,7 +93,7 @@ Never use colour alone: every chip carries a word.
 | Body | Regular / Medium | 16 px | 16 px |
 | Labels, chips, captions | Semi-bold | 12 to 14 px | 12 to 14 px |
 
-<span class="mi-verify">sizes to confirm with design</span>
+Sizes are read from the hi-fi screens; the design file remains the source of truth.
 
 ## Iconography
 
@@ -176,4 +179,4 @@ Three styles, each in red, navy and orange: **solid** for the main action, **tin
 
 ## Original style guide
 
-![Original Mirai style guide: logo, product colours, typography, iconography and buttons](../assets/brand/style-guide.png){ .zoomable .mi-w-sm }
+![Original Mirai style guide: logo, product colours, typography, iconography and buttons](../assets/brand/style-guide@3x.webp){ .zoomable .mi-w-sm }

@@ -32,35 +32,37 @@ description: Mirai's assets, adversaries, threat scenarios, mitigations, OWASP T
 
 ## Threats and mitigations
 
+Mitigations are the design. Those not built yet are marked *planned*; the full list is on [Implementation Status](../reference/implementation-status.md).
+
 | Threat scenario | Impact | Primary mitigations |
 | --- | --- | --- |
 | Director or other role reads raw observations | Breach of purpose limitation; punitive admissions use; loss of trust | Role-specific response models; admins limited to aggregates and approval views; audited access attempts |
-| Credential theft or weak staff password | Case exposure, false observations, fraudulent plans | Strong hashing, TOTP MFA, reCAPTCHA, lockout, admin-controlled reset, session timeouts |
-| Client-side score or alert manipulation | Wrong gating; inappropriate referral or support | Scores computed server-side only; no client score accepted |
-| IDOR: changing a student or case id in a request | Cross-child or cross-school exposure | Ownership resolved server-side; school from token; `404` out of scope; IDOR tests |
-| Referral packet intercepted or leaked | Exposure of child-related content | De-identification, encryption, parent-only export, audit |
-| Residual offline cache on a shared device | Next user sees drafts | Queue holds answers only; cleared on sign-out and expiry; short retention |
+| Credential theft or weak staff password | Case exposure, false observations, fraudulent plans | Argon2 hashing, TOTP for every role, lockout, rate limits. *Planned:* reCAPTCHA, session timeouts |
+| Client-side score or alert manipulation | Wrong gating; inappropriate referral or support | The API calculates scores server-side. **Gap:** the PWA still scores in the browser and `PATCH /cases/{case_id}` accepts the scores it sends |
+| IDOR: changing a student or case id in a request | Cross-child or cross-school exposure | Parent ownership checked for cases (`_parent_owns`, `tests/test_parent_access.py`). **Gap:** 45 routes have no authentication |
+| Referral packet intercepted or leaked | Exposure of child-related content | *Planned* (no export yet) |
+| Residual offline cache on a shared device | Next user sees drafts | Session cleared on sign-out. Offline answer queue *planned* |
 | Parent channel reaches another learner | Cross-child exposure | Parent bound to a verified child and school; no cross-learner navigation |
-| AI invents clinical labels | Misleading output; regulatory and ethical exposure | AI isolated from scoring; output guard; dual human approval; non-diagnostic language policy |
-| AI prompt carries identity data to a third party | Unlawful transfer, privacy breach | Prompt builder strips identity; store holds curriculum only; contractual no-retention |
+| AI invents clinical labels | Misleading output; regulatory and ethical exposure | AI isolated from scoring; prompt forbids diagnoses; recommendations naming a condition rejected; dual approval. *Planned:* condition check on IEP text |
+| AI prompt carries identity data to a third party | Unlawful transfer, privacy breach | Profile sent without names; output with a known name rejected; store holds reference documents only. Contractual no-retention open ([Q-12](../reference/decision-log.md#open-questions)) |
 | Token replay after sign-out | Session hijack | `revoked_token` table, `token_version`, short access tokens |
 | System admin over-reach | Mass exposure or sabotage | Least privilege; admin screens show no child content; logged archival and configuration changes; dual control for high-impact actions where practical |
-| Unbounded AI regeneration | Cost spike, output drift | Three attempts per cycle, then 24-hour cooldown |
+| Unbounded AI regeneration | Cost spike, output drift | One running job per kind per case. *Planned:* three attempts per cycle, then 24-hour cooldown |
 
 ## OWASP Top 10 (2025)
 
 | Risk | How Mirai is protected |
 | --- | --- |
-| **A01 Broken Access Control** | Non-overlapping roles; parent bound to a verified child and school; authentication and role checks on every request; no client-side privilege elevation |
-| **A02 Security Misconfiguration** | HTTPS enforced; default-deny on sensitive endpoints; secure session settings; debug and docs disabled in production; staging and production configurations reviewed |
-| **A03 Software Supply Chain Failures** | Dependency scanning (pip-audit, Safety); approved packages only; vendor due diligence; AI component isolated from the scoring core |
-| **A04 Cryptographic Failures** | Encryption at rest and in transit; encrypted, de-identified exports; keys in Vault with versioning |
-| **A05 Injection** | Pydantic validation; ORM-parameterised queries; finite state machine intake instead of free-text interpretation; HTML stripped and CSP |
+| **A01 Broken Access Control** | Non-overlapping roles; role guards (`dependencies.py`); parent ownership checks. **Gap:** 45 routes have no authentication ([Security gaps](../reference/implementation-status.md#security-gaps)) |
+| **A02 Security Misconfiguration** | Production refuses to start without its keys, SMTP and an HTTPS frontend URL (`core/config.py`); CSP and HSTS in production. *Planned:* docs disabled in production, default-deny on sensitive endpoints |
+| **A03 Software Supply Chain Failures** | `uv.lock` pins backend dependencies; AI isolated from the scoring core. *Planned:* pip-audit and Safety in CI |
+| **A04 Cryptographic Failures** | TLS in transit; TOTP secrets encrypted; RS256 keys from the environment. *Planned:* field encryption, encrypted exports, Vault with key versioning |
+| **A05 Injection** | Pydantic validation; ORM-parameterised queries; fixed stored questions with integer answers; CSP in production |
 | **A06 Insecure Design** | Threat model and requirements at design time; purpose limitation and anti-admission rules as first-class constraints; deterministic server-side scoring; human review gate |
-| **A07 Authentication Failures** | Staff MFA (email verification, reCAPTCHA, TOTP); admin-only credential resets; session timeouts; verified parent relationship |
-| **A08 Software or Data Integrity Failures** | Scores only on the server; AI output stays draft until reviewed; offline sync over authenticated channels with idempotency keys |
-| **A09 Security Logging and Alerting Failures** | Case access, role changes, resets, archival and exports logged with actor, time and target; logs protected from alteration; health monitoring without child content |
-| **A10 Mishandling of Exceptional Conditions** | Sanitised errors; defined offline and session-end behaviour; regeneration limits; AI failure leaves a safe draft |
+| **A07 Authentication Failures** | TOTP for every role; lockout; single-use reset tokens. *Planned:* reCAPTCHA, session timeouts |
+| **A08 Software or Data Integrity Failures** | AI output stays a draft until approved. **Gap:** client-calculated scores are accepted (see above). *Planned:* offline sync with idempotency keys |
+| **A09 Security Logging and Alerting Failures** | Auth events in the server log; consent in the `audit_log` table, which the application cannot alter. *Planned:* audit rows for case access, role changes and exports; monitoring |
+| **A10 Mishandling of Exceptional Conditions** | Unhandled errors return a generic `500`; AI failures mark the job `FAILED` and change nothing else. *Planned:* regeneration limits |
 
 ## Residual risks
 

@@ -15,7 +15,7 @@ Team Prism built Mirai as its final project in the **AkiraChix codeHive 2026** c
 </div>
 <div class="mi-card" markdown>
 
-![Mirai logo](../assets/brand/mirai-logo.svg){ .mi-w-sm }
+![Mirai logo](../assets/brand/mirai-logo-horizontal.svg){ .mi-w-sm }
 
 **Mirai** is the product. Team Prism is the team.
 
@@ -50,4 +50,3 @@ Team Prism built Mirai as its final project in the **AkiraChix codeHive 2026** c
 | QA | Discovery and test strategy, test case workbooks |
 | Presentation and Design | Style guide, wireframes, hi-fi prototypes, presentation deck |
 
-Owners for each workstream are recorded in the team workspace. <span class="mi-verify">add owners</span>

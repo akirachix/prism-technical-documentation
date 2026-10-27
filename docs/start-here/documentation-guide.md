@@ -51,7 +51,7 @@ This site summarises and connects Team Prism's working documents. When something
 
 **Names.** *Mirai* is the product. *Team Prism* is the team. Use *school administrator* for the school-level role and *system administrator* for the Mirai operator. Use the status names exactly as they appear in the data model, in code font: `IEP_PENDING_APPROVAL`.
 
-**Unconfirmed facts.** If a value is still an open decision, say so with the badge <span class="mi-verify">confirm</span> and link the matching entry in the decision log.
+**Unconfirmed facts.** If a value is still an open decision, add it to the [Decision Log](../reference/decision-log.md) and link the entry (for example "open, see Q-08"). If a feature is designed but not built, mark it *Planned* and list it on [Implementation Status](../reference/implementation-status.md). Do not leave "confirm" badges in published pages.
 
 **No secrets, no real children.** Never paste credentials, tokens, real names, admission numbers or real screening answers. Use synthetic examples like *Amani Otieno, Adm. 0142*.
 
@@ -79,7 +79,7 @@ The site uses Material for MkDocs. These are the building blocks we use most.
 === "Zoomable images"
 
     ```markdown
-    ![Secure system architecture](../assets/architecture/secure-system-architecture.png){ .zoomable }
+    ![Secure system architecture](../assets/architecture/secure-system-architecture@3x.webp){ .zoomable }
     ```
 
     Images with the `zoomable` class open full screen on click.
@@ -88,7 +88,6 @@ The site uses Material for MkDocs. These are the building blocks we use most.
 
     ```html
     <span class="mi-badge mi-badge--elevated">Elevated</span>
-    <span class="mi-verify">confirm</span>
     ```
 
 Keep images in `docs/assets/<section>/` with lowercase, hyphenated names.

@@ -16,12 +16,12 @@ stateDiagram-v2
     state "Open case (teacher can close at any point)" as OPEN {
         INITIATED --> TEACHER_SCREENING_COMPLETED: teacher submits screening
         TEACHER_SCREENING_COMPLETED --> PARENT_SCREENING_COMPLETED: parent submits screening
-        PARENT_SCREENING_COMPLETED --> IEP_PENDING_APPROVAL: score 2.00+ or discrepancy
+        PARENT_SCREENING_COMPLETED --> IEP_PENDING_APPROVAL: score 2.00+
         IEP_PENDING_APPROVAL --> IEP_PENDING_APPROVAL: rejected
         IEP_PENDING_APPROVAL --> IEP_ACTIVE: both approve
         IEP_ACTIVE --> EVALUATION_PENDING: unlock date reached
     }
-    PARENT_SCREENING_COMPLETED --> NO_CONCERN_IDENTIFIED: below 2.00, no discrepancy
+    PARENT_SCREENING_COMPLETED --> NO_CONCERN_IDENTIFIED: below 2.00
     EVALUATION_PENDING --> COMPLETED: evaluation done
     OPEN --> CLOSED: closed early
     NO_CONCERN_IDENTIFIED --> [*]
@@ -37,7 +37,7 @@ stateDiagram-v2
 | `IEP_PENDING_APPROVAL` | IEP submitted and waiting for both approvals | |
 | `IEP_ACTIVE` | IEP approved and in use; parent can view it | |
 | `EVALUATION_PENDING` | The six-week evaluation is open for answers | |
-| `NO_CONCERN_IDENTIFIED` | Highest domain score below 2.00 and no qualifying discrepancy; no IEP | :material-check: |
+| `NO_CONCERN_IDENTIFIED` | Highest domain score below 2.00; no IEP | :material-check: |
 | `CLOSED` | Teacher ended the case early (`closed_at`, `closed_reason` set) | :material-check: |
 | `COMPLETED` | Six-week evaluation answered by both; outcome kept on the record | :material-check: |
 
@@ -49,13 +49,17 @@ stateDiagram-v2
 
 ## Transitions and guards
 
+!!! warning "What the API moves automatically today"
+
+    Only these transitions are made by the backend: `INITIATED` → `TEACHER_SCREENING_COMPLETED` when the teacher completes their assessment (`services/screening_assessment.py`); → `PARENT_SCREENING_COMPLETED` or `NO_CONCERN_IDENTIFIED` when scores are calculated (`services/domain_score.py`); and → `CLOSED` when a case is closed (`services/case.py`). IEP progress is tracked on the `iep` table (`DRAFT`, `PENDING_APPROVAL`, `ACTIVE`). The case statuses `IEP_PENDING_APPROVAL`, `IEP_ACTIVE`, `EVALUATION_PENDING` and `COMPLETED` are not set automatically yet; they can only be set with `PATCH /cases/{case_id}`. The guards below are the design; items marked *Planned* are not enforced.
+
 | From | To | Triggered by | Guard (checked server-side) |
 | --- | --- | --- | --- |
-| *(none)* | `INITIATED` | Teacher | Caller is the student's teacher; parent linked and consent recorded; student aged 4 to 9; no unfinished case |
-| `INITIATED` | `TEACHER_SCREENING_COMPLETED` | Teacher | Every scored question in the routed instruments answered; inside the intake window |
-| `TEACHER_SCREENING_COMPLETED` | `PARENT_SCREENING_COMPLETED` | Parent | Caller is the linked parent; every question answered; inside the window |
-| `PARENT_SCREENING_COMPLETED` | `NO_CONCERN_IDENTIFIED` | System | `domain_density_score < 2.00` and no domain discrepancy |
-| `PARENT_SCREENING_COMPLETED` | `IEP_PENDING_APPROVAL` | System, then teacher | Score of 2.00 or more, or discrepancy; IEP draft created, edited and submitted by the teacher |
+| *(none)* | `INITIATED` | Teacher | No unfinished case (database index). *Planned:* caller is the student's teacher; consent recorded; student aged 4 to 9 (the API accepts 3 to 12, [Q-13](../reference/decision-log.md#open-questions)) |
+| `INITIATED` | `TEACHER_SCREENING_COMPLETED` | Teacher | Every question in the plan answered (`complete`). *Planned:* inside the intake window |
+| `TEACHER_SCREENING_COMPLETED` | `PARENT_SCREENING_COMPLETED` | Parent | Every question answered and scores calculated. *Planned:* caller is the linked parent; inside the window |
+| `PARENT_SCREENING_COMPLETED` | `NO_CONCERN_IDENTIFIED` | System | `domain_density_score < 2.00` (discrepancy rule *planned*) |
+| `PARENT_SCREENING_COMPLETED` | `IEP_PENDING_APPROVAL` | System, then teacher | *Planned as a case status.* Score of 2.00 or more; IEP draft created and submitted |
 | `IEP_PENDING_APPROVAL` | `IEP_ACTIVE` | Teacher + school admin | Both `teacher_approved` and `admin_approved` are true on the current version |
 | `IEP_ACTIVE` | `EVALUATION_PENDING` | System (scheduled or on read) | `now >= evaluation_unlock_date` |
 | `EVALUATION_PENDING` | `COMPLETED` | System | One teacher and one parent answer for every evaluation question |
@@ -80,7 +84,7 @@ stateDiagram-v2
 
 - `version_number` starts at 1 and is unique per case.
 - When a newer version is created, the older one gets `superseded_at`.
-- Automatic regeneration is limited to **three attempts per case per generation cycle**, then a **24-hour cooldown**, stored per case (not per session). See [IEP and Evaluation Generation](../ai/iep-generation.md#regeneration-limits).
+- *Planned:* regeneration limited to **three attempts per case per generation cycle**, then a **24-hour cooldown** ([D-09](../reference/decision-log.md#decisions)). Not in the code yet; see [IEP and Evaluation Generation](../ai/iep-generation.md#when-generation-is-allowed).
 
 ## Timing rules
 
@@ -103,20 +107,20 @@ gantt
 | Rule | Value |
 | --- | --- |
 | Observation before opening a case | A persistent concern over roughly the first four weeks of term |
-| Intake window | Fixed **7 days** per case; responses lock at the close |
+| Intake window | *Planned:* fixed **7 days** per case; responses lock at the close |
 | Evaluation unlock | `approved_at + 6 weeks` (both approvals recorded) |
 | Evaluation scale | Integers **-2 to 2** per question, one teacher and one parent answer each |
-| Regeneration | 3 attempts per cycle, then 24-hour cooldown |
+| Regeneration | *Planned:* 3 attempts per cycle, then 24-hour cooldown |
 
 ## Edge cases
 
 | Situation | Behaviour |
 | --- | --- |
 | Teacher and parent screening finished, scores computed | Report built immediately; rebuilt in place when the IEP becomes active |
-| Only one side completes before the window closes | Open decision. Interim proposal: score the completed side, mark discrepancy not applicable, still allow Elevated; if neither completes, close as incomplete. <span class="mi-verify">confirm</span> |
-| Response arrives after the window (offline queue) | Rejected as an in-window submission; the client shows that the window has closed |
-| Child has a birthday during an open case | Interim rule: age is completed years on the day the case opens; no re-routing. <span class="mi-verify">confirm</span> |
-| Parent withdraws consent | Open decision; interim proposal locks the case, blocks new observations and disables export. <span class="mi-verify">confirm</span> |
+| Only one side completes before the window closes | Open decision. Interim proposal: score the completed side, mark discrepancy not applicable, still allow Elevated; if neither completes, close as incomplete. Tracked as [Q-03](../reference/decision-log.md#open-questions) |
+| Response arrives after the window | *Planned:* rejected as an in-window submission, and the client shows that the window has closed. No window-closing job exists yet ([Implementation Status](../reference/implementation-status.md#partial)) |
+| Child has a birthday during an open case | Age is completed years on the date passed to the rules (`services/screening_rules.py`, `age_in_years`); no re-routing. Tracked as [Q-02](../reference/decision-log.md#open-questions) |
+| Parent withdraws consent | Open decision; interim proposal locks the case, blocks new observations and disables export. Not built. Tracked as [Q-04](../reference/decision-log.md#open-questions) |
 | Teacher leaves the school | School admin revokes access; sessions end; the student's record stays with the student, not the teacher |
 | AI service unavailable | Scores and alerts are unaffected; the IEP stays in a safe draft state and the teacher can retry or write it manually (`generated_by = MANUAL`) |
 

@@ -66,7 +66,7 @@ Has no school-wide view of how many children may need support, which makes train
 | Capability | Teacher | Parent | School admin | System admin |
 | --- | :---: | :---: | :---: | :---: |
 | Sign in with email and password | :material-check: | :material-check: | :material-check: | :material-check: |
-| Second factor at sign-in | TOTP app | Email one-time code <span class="mi-verify">confirm</span> | TOTP app | TOTP app |
+| Second factor at sign-in | TOTP app | TOTP app | TOTP app | TOTP app |
 | Onboard schools and first school admin | | | | :material-check: |
 | Create and revoke teacher accounts | | | :material-check: | |
 | Invite parents | :material-check: | | | |

@@ -99,7 +99,7 @@ These findings are traced one by one to technical requirements in [Architecture]
 | Dyslexia prevalence, children aged 7 to 9 in a Nairobi school | 7.49% |
 | Typical early-years class size in target schools | 45 to 65+ learners per teacher |
 
-The teacher-versus-parent accuracy gap is one reason Mirai uses **both** informants and treats a large disagreement between them as meaningful rather than noise (see [Discrepancy handling](../backend/scoring-engine.md#discrepancy-handling)).
+The teacher-versus-parent accuracy gap is one reason Mirai uses **both** informants and treats a large disagreement between them as meaningful rather than noise (see [Discrepancy handling](../backend/scoring-engine.md#bands-and-the-case-outcome)).
 
 ## Business model
 

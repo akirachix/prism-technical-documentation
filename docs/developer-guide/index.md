@@ -15,7 +15,6 @@ description: How Team Prism works on Mirai - repositories, branching, convention
 | Frontend | Next.js PWA for all roles |
 | `prism-technical-documentation` | This site (MkDocs + Material) |
 
-Ask a maintainer for access to the backend and frontend repositories. Their exact URLs are listed in the team workspace. <span class="mi-verify">add links</span>
 
 ## Workflow
 
@@ -43,12 +42,12 @@ gitGraph
 
 !!! danger "Non-negotiables"
 
-    1. **No AI import in `scoring/`.** Scores and alerts are deterministic and server-side.
+    1. **No AI import in the scoring rules** (`services/screening_rules.py`, `services/domain_score.py`). Scores and alerts are deterministic and server-side.
     2. **Every query is school-scoped**, using the school from the token, never from the request.
     3. **No string-built SQL.** Use the ORM.
     4. **Role-specific response models.** Never return a full ORM object to a client.
     5. **No personal data in logs or audit details.** Ids and short notes only.
-    6. **No secrets in git.** Use `.env` locally (ignored) and Vault elsewhere.
+    6. **No secrets in git.** Use `.env` locally (ignored) and the host's secret settings elsewhere (Vault is planned).
     7. **No real children's data** outside production. Use synthetic data.
     8. **No diagnostic language** in UI copy, prompts or generated output.
     9. **AI output stays a draft** until both approvals are recorded.
